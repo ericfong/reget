@@ -3,7 +3,7 @@
 fetch HTTP like Sync call in React
 
 ## Http get, put, post for react component
-```
+```js
 import connectReget from 'reget'
 
 function PureComponent({user}) {
@@ -26,7 +26,7 @@ export default connectReget(({userId, reget}) => {
 ```
 
 ## setup
-```
+```js
 import {RegetProvider} from 'reget'
 
 const reget = new Reget({
