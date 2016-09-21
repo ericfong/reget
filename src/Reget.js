@@ -51,6 +51,8 @@ export default class Reget extends EventEmitter {
       this.times[key] = Date.now()
     })
 
+    // this must larger then debounce value to prevent deadloop
+    this.ttl = props.ttl || 60 * 1000
     this.fetch = props.fetch
 
     // change event debounce for 100ms
@@ -66,7 +68,7 @@ export default class Reget extends EventEmitter {
     const cache = this.caches[url]
     const time = this.times[url]
 
-    if (!this.promises[url]) {
+    if ((!time || Date.now() - time > this.ttl) && !this.promises[url]) {
       const option = {
         headers: {},
         isGreedy: this.isGreedy,
