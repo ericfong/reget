@@ -4,7 +4,7 @@ import shallowEqual from 'fbjs/lib/shallowEqual'
 export Reget from './Reget'
 
 
-export default function connectReget(getterFunc) {
+export function connectReget(getterFunc) {
   return (WrappedComponent) => {
     class WithCache extends React.Component {
       static contextTypes = {
@@ -71,6 +71,7 @@ export default function connectReget(getterFunc) {
     return WithCache
   }
 }
+export default connectReget
 
 export class RegetProvider extends Component {
   static childContextTypes = {
@@ -78,6 +79,7 @@ export class RegetProvider extends Component {
   }
 
   getChildContext() {
+    console.log('this.props.reget', this.props.reget) 
     return {reget: this.props.reget}
   }
 
