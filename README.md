@@ -30,19 +30,9 @@ export default connectReget(({userId, reget}) => {
 import {RegetProvider} from 'reget'
 
 const reget = new Reget({
-  // setup fetch and middlewares
-  fetch(url, option) {
-    // local routes ...
-
-    // remote api
-    const {isGreedy, cachedFor} = option
-    if (isGreedy || !cachedFor || cachedFor > remoteRefetchLongTtl) {
-      const realUrl = apiUrlPrefix + url
-      return fetch(realUrl, option)
-    } else {
-      return { status: 304 }
-    }
-  },
+  // you can setup fetch and middlewares here
+  // (url: String, option: {headers: {'If-Modified-Since': Date}, ifModifiedSince: Date, isGreedy: Boolean}})
+  fetch: window.fetch,
 })
 
 <RegetProvider

@@ -51,7 +51,6 @@ export default class Reget extends EventEmitter {
       this.times[key] = Date.now()
     })
 
-    this.ttl = props.ttl || 60 * 1000
     this.fetch = props.fetch
 
     // change event debounce for 100ms
@@ -67,14 +66,16 @@ export default class Reget extends EventEmitter {
     const cache = this.caches[url]
     const time = this.times[url]
 
-    if ((!time || Date.now() - time > this.ttl) && !this.promises[url]) {
-      const result = this.load(url, {
-        headers: {
-          'If-Modified-Since': new Date(time),
-        },
+    if (!this.promises[url]) {
+      const option = {
+        headers: {},
         isGreedy: this.isGreedy,
-        cachedFor: Date.now() - time,
-      })
+      }
+      if (time) {
+        option.headers['If-Modified-Since'] = time
+        option.ifModifiedSince = time
+      }
+      const result = this.load(url, option)
       // use result instead of cache when result is not a promise
       if (!(result && result.then)) {
         return result
@@ -104,14 +105,14 @@ export default class Reget extends EventEmitter {
     _.defaults(option, {method: 'GET'})
     const optionMethod = option.method
     const result = this.fetch(url, option)
-    this.times[url] = Date.now()
+    this.times[url] = new Date()
     const thenHandler = data => {
       if (optionMethod === 'GET' || optionMethod === 'HEAD') {
         if (data && data.$caches) {
           // key-value pair caches
           _.each(data.$caches, (subCache, subUrl) => {
             this.caches[subUrl] = subCache
-            this.times[subUrl] = Date.now()
+            this.times[subUrl] = new Date()
           })
           _.each(data.$cacheTimestamps, (timestamp, subUrl) => {
             this.times[subUrl] = timestamp
