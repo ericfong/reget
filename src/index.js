@@ -79,7 +79,6 @@ export class RegetProvider extends Component {
   }
 
   getChildContext() {
-    console.log('this.props.reget', this.props.reget) 
     return {reget: this.props.reget}
   }
 

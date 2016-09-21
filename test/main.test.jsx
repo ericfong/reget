@@ -18,25 +18,30 @@ describe('main', function() {
         username: props.reget.get('username'),
       }
     })(props => {
-      return props.username
+      return <div>{props.username}</div>
     })
     const reget = new Reget({
      fetch(url, option) {
-       console.log(url, option)
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve('Http Result')
+          }, 1)
+        })
      },
    })
-   console.log(reget)
-   const wrapper = shallow(
+   const wrapper = mount(
      <RegetProvider reget={reget}>
        <UserComp />
      </RegetProvider>
    )
-   console.log(wrapper.html())
-  //  wrapper.html().should.be.exactly('<div></div>')
+   wrapper.html().should.be.exactly('<div></div>')
 
-    // should(
-    // ).has.properties({
-    //   created: 2,
-    // })
+   await new Promise(resolve => {
+     setTimeout(() => {
+       resolve('Wait after re-render')
+     }, 300)
+   })
+
+   wrapper.html().should.be.exactly('<div>Http Result</div>')
   })
 })
