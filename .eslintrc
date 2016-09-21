@@ -1,6 +1,7 @@
 {
   "extends": ["eslint:recommended", "plugin:react/recommended"],
-  "plugins": ["import", "babel", "lodash", "react"],
+  "plugins": ["import", "react"],
+  "//plugins": ["import", "babel", "lodash", "mocha", "react"],
   "rules": {
     "react/prop-types": 0,
     semi: [1, 'never'],
@@ -21,10 +22,14 @@
   "settings": {
     "import/resolver": {
       "node": {
-        "extensions": [".js", ".jsx"],
+        extensions: ['.js', '.jsx', '.json'],
+        "moduleDirectory": [
+          "node_modules",
+          "."
+        ]
       }
     },
-    "import/extensions": [".js", ".jsx"],
+    "import/extensions": [".js", ".jsx", '.json'],
   },
   "env": {
     "browser": true,
