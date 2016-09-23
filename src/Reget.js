@@ -141,11 +141,15 @@ export default class Reget extends EventEmitter {
   }
 
   // write through cache functions
-  put(url, body) {
-    return this.request(url, {method: 'PUT', body})
+  async put(url, body) {
+    const ret = await this.request(url, {method: 'PUT', body})
+    this.invalidate(url)
+    return ret
   }
-  post(url, body) {
-    return this.request(url, {method: 'POST', body})
+  async post(url, body) {
+    const ret = await this.request(url, {method: 'POST', body})
+    this.invalidate(url)
+    return ret
   }
 
   invalidate(urlPrefix) {
