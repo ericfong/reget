@@ -9,6 +9,10 @@ function getUrl(pathname, query) {
   return url
 }
 
+function isPromise(p) {
+  return p && p.then
+}
+
 
 class Runner {
   isGreedy = false
@@ -45,14 +49,12 @@ export default class Reget extends EventEmitter {
     this.caches = props.caches || {}
 
     // meta
-    this.times = {}
+    this.modifieds = {}
     this.promises = {}
     _.each(this.caches, (val, key) => {
-      this.times[key] = Date.now()
+      this.modifieds[key] = Date.now()
     })
 
-    // this must larger then debounce value to prevent deadloop
-    this.ttl = props.ttl || 60 * 1000
     this.fetch = props.fetch
 
     // change event debounce for 100ms
@@ -66,20 +68,20 @@ export default class Reget extends EventEmitter {
   get(pathname, query) {
     const url = getUrl(pathname, query)
     const cache = this.caches[url]
-    const time = this.times[url]
+    const modified = this.modifieds[url]
 
-    if ((!time || Date.now() - time > this.ttl) && !this.promises[url]) {
-      const option = {
-        headers: {},
-        isGreedy: this.isGreedy,
-      }
-      if (time) {
-        option.headers['If-Modified-Since'] = time
-        option.ifModifiedSince = time
+    // NOTE check and call load again
+    // modified is wait for push (reget.put and reget.post will also clean modified to trigger load again)
+    // isGreedy is force ping (used in componentWillMount and componentWillReceiveProps to force load data)
+    if (!modified || this.isGreedy) {
+      const option = {headers: {}}
+      if (modified) {
+        option.headers['If-Modified-Since'] = modified
+        option.ifModifiedSince = modified
       }
       const result = this.load(url, option)
-      // use result instead of cache when result is not a promise
-      if (!(result && result.then)) {
+      // use result directly if load is sync
+      if (!isPromise(result)) {
         return result
       }
     }
@@ -88,8 +90,15 @@ export default class Reget extends EventEmitter {
   }
 
   load(url, option) {
-    const result = this.request(url, option)
-    if (result && result.then) {
+    // check promise is running
+    let result = this.promises[url]
+    if (result) {
+      return result
+    }
+    // no promise is running, call request
+    result = this.request(url, option)
+    // request may be sync or async (promise)
+    if (isPromise(result)) {
       // result is promise
       this.promises[url] = result
       result.then(ret => {
@@ -99,6 +108,8 @@ export default class Reget extends EventEmitter {
         delete this.promises[url]
         throw err
       })
+    } else {
+      delete this.promises[url]
     }
     return result
   }
@@ -106,37 +117,44 @@ export default class Reget extends EventEmitter {
   request(url, option = {}) {
     _.defaults(option, {method: 'GET'})
     const optionMethod = option.method
-    const result = this.fetch(url, option)
-    this.times[url] = new Date()
-    const thenHandler = data => {
-      if (optionMethod === 'GET' || optionMethod === 'HEAD') {
-        if (data && data.$caches) {
-          // key-value pair caches
-          _.each(data.$caches, (subCache, subUrl) => {
-            this.caches[subUrl] = subCache
-            this.times[subUrl] = new Date()
-          })
-          _.each(data.$cacheTimestamps, (timestamp, subUrl) => {
-            this.times[subUrl] = timestamp
-          })
-        } else if (data && data.status === 304) {
-          // no change, times already set
+    const response = this.fetch(url, option)
+
+    this.modifieds[url] = new Date()
+    let postResponse
+    if (optionMethod === 'GET' || optionMethod === 'HEAD') {
+      postResponse = data => {
+        // if (data && data.$caches) {
+        //   // key-value pair caches
+        //   _.each(data.$caches, (subCache, subUrl) => {
+        //     this.caches[subUrl] = subCache
+        //     this.modifieds[subUrl] = new Date()
+        //   })
+        //   _.each(data.$cacheTimestamps, (timestamp, subUrl) => {
+        //     this.modifieds[subUrl] = timestamp
+        //   })
+        // } else
+        if (data && data.status === 304) {
+          // no change, modifieds already set
           data = this.caches[url]
         } else {
           // simple data cache
           this.caches[url] = data
         }
-      } else {
-        // for PUT and POST, suppose the data for this url will be changed
-        delete this.times[url]
+        this._emitChange()
+        return data
       }
-      this._emitChange()
-      return data
-    }
-    if (result && result.then) {
-      return result.then(thenHandler)
     } else {
-      return thenHandler(result)
+      postResponse = data => {
+        // for PUT and POST, suppose the data for this url will be changed
+        delete this.modifieds[url]
+        this._emitChange()
+        return data
+      }
+    }
+    if (isPromise(response)) {
+      return response.then(postResponse)
+    } else {
+      return postResponse(response)
     }
   }
 
@@ -153,7 +171,7 @@ export default class Reget extends EventEmitter {
   }
 
   invalidate(urlPrefix) {
-    this.times = _.mapValues(this.times, (val, key) => _.startsWith(key, urlPrefix))
+    this.modifieds = _.mapValues(this.modifieds, (val, key) => _.startsWith(key, urlPrefix))
   }
 
   createRunner(func) {

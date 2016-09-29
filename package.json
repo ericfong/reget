@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "babel src --out-dir lib",
-    "test": "cross-env NODE_ENV=test mocha"
+    "start": "babel src --out-dir lib --watch",
+    "test": "cross-env NODE_ENV=test mocha --opts test/mocha.opts"
   },
   "dependencies": {
     "lodash": "^4.15.0",
