@@ -2,6 +2,8 @@ import { EventEmitter } from 'events'
 import _ from 'lodash'
 import stringify from 'querystring-stable-stringify'
 
+import runMiddlewares from './runMiddlewares'
+
 
 function getUrl(pathname, query) {
   let url = pathname
@@ -44,9 +46,11 @@ class Runner {
 
 
 export default class Reget extends EventEmitter {
-  constructor(props) {
+  middlewares = []
+
+  constructor({caches} = {}) {
     super()
-    this.caches = props.caches || {}
+    this.caches = caches || {}
 
     // meta
     this.modifieds = {}
@@ -55,10 +59,21 @@ export default class Reget extends EventEmitter {
       this.modifieds[key] = Date.now()
     })
 
-    this.fetch = props.fetch
-
     // change event debounce for 100ms
     this._emitChange = _.debounce(() => this.emit('change'), 100)
+
+    this.use(this.baseMiddleware.bind(this))
+  }
+
+  use(middleware) {
+    this.middlewares.push(middleware)
+  }
+
+  baseMiddleware({method, url, body}) {
+    // console.log('baseMiddleware', ctx)
+    if (method === 'PUT' || method === 'POST') {
+      this.caches[url] = body
+    }
   }
 
   setGreedy(isGreedy) {
@@ -91,38 +106,31 @@ export default class Reget extends EventEmitter {
 
   load(url, option) {
     // check promise is running
-    let result = this.promises[url]
+    const result = this.promises[url]
     if (result) {
       return result
     }
-    // no promise is running, call request
-    result = this.request(url, option)
-    // request may be sync or async (promise)
-    if (isPromise(result)) {
-      // result is promise
-      this.promises[url] = result
-      result.then(ret => {
-        delete this.promises[url]
-        return ret
-      }).catch(err => {
-        delete this.promises[url]
-        throw err
-      })
-    } else {
+
+    this.promises[url] = result
+    return this.request({...option, method: 'GET', url})
+    .then(result => {
       delete this.promises[url]
-    }
-    return result
+      return result
+    }, err => {
+      delete this.promises[url]
+      throw err
+    })
   }
 
-  request(url, option = {}) {
-    _.defaults(option, {method: 'GET'})
-    const optionMethod = option.method
-    const response = this.fetch(url, option)
+  request(ctx) {
+    _.defaults(ctx, {method: 'GET'})
+    const {url, method} = ctx
 
-    this.modifieds[url] = new Date()
-    let postResponse
-    if (optionMethod === 'GET' || optionMethod === 'HEAD') {
-      postResponse = data => {
+    return runMiddlewares(ctx, this.middlewares)
+    .then(res => {
+      let body = res && res.body
+      this.modifieds[url] = new Date()
+      if (method === 'GET' || method === 'HEAD') {
         // if (data && data.$caches) {
         //   // key-value pair caches
         //   _.each(data.$caches, (subCache, subUrl) => {
@@ -133,41 +141,38 @@ export default class Reget extends EventEmitter {
         //     this.modifieds[subUrl] = timestamp
         //   })
         // } else
-        if (data && data.status === 304) {
+        if (res && res.status === 304) {
           // no change, modifieds already set
-          data = this.caches[url]
+          body = this.caches[url]
         } else {
           // simple data cache
-          this.caches[url] = data
+          this.caches[url] = body
         }
         this._emitChange()
-        return data
-      }
-    } else {
-      postResponse = data => {
+        return body
+      } else {
         // for PUT and POST, suppose the data for this url will be changed
         delete this.modifieds[url]
         this._emitChange()
-        return data
+        return body
       }
-    }
-    if (isPromise(response)) {
-      return response.then(postResponse)
-    } else {
-      return postResponse(response)
-    }
+    })
   }
 
   // write through cache functions
-  async put(url, body) {
-    const ret = await this.request(url, {method: 'PUT', body})
-    this.invalidate(url)
-    return ret
+  put(url, body, option) {
+    return this.request({...option, method: 'PUT', url, body})
+    .then(result => {
+      this.invalidate(url)
+      return result
+    })
   }
-  async post(url, body) {
-    const ret = await this.request(url, {method: 'POST', body})
-    this.invalidate(url)
-    return ret
+  post(url, body, option) {
+    return this.request({...option, method: 'POST', url, body})
+    .then(result => {
+      this.invalidate(url)
+      return result
+    })
   }
 
   invalidate(urlPrefix) {

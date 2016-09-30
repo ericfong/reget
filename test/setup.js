@@ -1,3 +1,5 @@
+import should from 'should'
+
 /* globals document */
 import {jsdom} from 'jsdom'
 
