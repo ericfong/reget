@@ -2,17 +2,13 @@ import { EventEmitter } from 'events'
 import _ from 'lodash'
 import stringify from 'querystring-stable-stringify'
 
-import runMiddlewares from './runMiddlewares'
+import MiddlewareManager from './MiddlewareManager'
 
 
 function getUrl(pathname, query) {
   let url = pathname
   if (query) url += '?' + stringify(query)
   return url
-}
-
-function isPromise(p) {
-  return p && p.then
 }
 
 
@@ -45,9 +41,18 @@ class Runner {
 }
 
 
-export default class Reget extends EventEmitter {
-  middlewares = []
+export function cacheMiddleware(ctx) {
+  const {method, url, body} = ctx
+  if (method === 'GET') {
+    ctx.body = this.caches[url]
+  } else {
+    // console.log('CACHE SET', url, body, 'DEFAULT')
+    this.caches[url] = body
+  }
+}
 
+
+export default class Reget extends EventEmitter {
   constructor({caches} = {}) {
     super()
     this.caches = caches || {}
@@ -62,18 +67,16 @@ export default class Reget extends EventEmitter {
     // change event debounce for 100ms
     this._emitChange = _.debounce(() => this.emit('change'), 100)
 
-    this.use(this.baseMiddleware.bind(this))
+    this.middlewareManager = new MiddlewareManager()
+    // TODO set onlt when 404?
+    // this.use((ctx, next) => {
+    //   return next()
+    //   .then(cacheMiddleware.bind(this))
+    // })
   }
 
-  use(middleware) {
-    this.middlewares.push(middleware)
-  }
-
-  baseMiddleware({method, url, body}) {
-    // console.log('baseMiddleware', ctx)
-    if (method === 'PUT' || method === 'POST') {
-      this.caches[url] = body
-    }
+  use(path, fn, opts) {
+    this.middlewareManager.use(path, fn, opts)
   }
 
   setGreedy(isGreedy) {
@@ -96,8 +99,8 @@ export default class Reget extends EventEmitter {
       }
       const result = this.load(url, option)
       // use result directly if load is sync
-      if (!isPromise(result)) {
-        return result
+      if (result.isFulfilled) {
+        return result.value
       }
     }
 
@@ -123,14 +126,12 @@ export default class Reget extends EventEmitter {
   }
 
   request(ctx) {
-    _.defaults(ctx, {method: 'GET'})
     const {url, method} = ctx
-
-    return runMiddlewares(ctx, this.middlewares)
+    return this.middlewareManager.run(ctx)
     .then(res => {
       let body = res && res.body
       this.modifieds[url] = new Date()
-      if (method === 'GET' || method === 'HEAD') {
+      if (method === 'GET') {
         // if (data && data.$caches) {
         //   // key-value pair caches
         //   _.each(data.$caches, (subCache, subUrl) => {
@@ -146,6 +147,7 @@ export default class Reget extends EventEmitter {
           body = this.caches[url]
         } else {
           // simple data cache
+          // console.log('CACHE SET', url, body, ctx)
           this.caches[url] = body
         }
         this._emitChange()
@@ -154,7 +156,7 @@ export default class Reget extends EventEmitter {
         // for PUT and POST, suppose the data for this url will be changed
         delete this.modifieds[url]
         this._emitChange()
-        return body
+        return body || null
       }
     })
   }

@@ -5,37 +5,34 @@ export function isPromise(p) {
 
 // wrap sync result to a promise like interface
 class SyncPromise {
-  constructor(result, error) {
-    this.result = result
+  constructor(value, error) {
+    this.value = value
     this.error = error
     this.isFulfilled = true
   }
   then(onFulfilled, onRejected) {
     if (onRejected && this.error) {
-      this.catch(onRejected)
+      this.value = onRejected(this.value)
     } else if (onFulfilled) {
-      this.result = onFulfilled(this.result)
+      this.value = onFulfilled(this.value)
     }
     return this
   }
   catch(onRejected) {
     if (onRejected && this.error) {
-      const errRet = onRejected(this.error)
-      if (errRet !== undefined) {
-        this.result = errRet
-      }
+      this.value = onRejected(this.error)
     }
     return this
   }
 }
 
-function toPromise(result, error) {
+export function toPromise(result, error) {
   return isPromise(result) ? result : new SyncPromise(result, error)
 }
 
 export default function runMiddlewares(context, middlewares, i = 0) {
   const curMiddleware = middlewares[i]
-  if (!curMiddleware) return new SyncPromise()
+  if (!curMiddleware) return new SyncPromise(context)
 
   let result
   let error
@@ -46,5 +43,8 @@ export default function runMiddlewares(context, middlewares, i = 0) {
   } catch(err) {
     error = err
   }
+
   return toPromise(result, error)
+  // fill result with original context, if undefined is return
+  .then(newCtx => newCtx || context)
 }
