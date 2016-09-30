@@ -8,7 +8,7 @@ ctx schema = {
 // req
   url,
   path,
-  data,
+  data or body,
   headers,
   ifModifiedSince,
 

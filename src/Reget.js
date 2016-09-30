@@ -156,7 +156,7 @@ export default class Reget extends EventEmitter {
         // for PUT and POST, suppose the data for this url will be changed
         delete this.modifieds[url]
         this._emitChange()
-        return body || null
+        return body
       }
     })
   }

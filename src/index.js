@@ -1,7 +1,7 @@
 import React, {PropTypes, Component} from 'react'
 import shallowEqual from 'fbjs/lib/shallowEqual'
 
-export Reget from './Reget'
+export Reget, {cacheMiddleware} from './Reget'
 
 
 export function connectReget(getterFunc) {
