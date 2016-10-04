@@ -84,7 +84,7 @@ export default class Reget extends EventEmitter {
   }
 
   get(pathname, query) {
-    const url = getUrl(pathname, query)
+    const url = query ? getUrl(pathname, query) : pathname
     const cache = this.caches[url]
     const modified = this.modifieds[url]
 
@@ -154,7 +154,7 @@ export default class Reget extends EventEmitter {
         return body
       } else {
         // for PUT and POST, suppose the data for this url will be changed
-        delete this.modifieds[url]
+        this.invalidate(url)
         this._emitChange()
         return body
       }
@@ -164,21 +164,13 @@ export default class Reget extends EventEmitter {
   // write through cache functions
   put(url, body, option) {
     return this.request({...option, method: 'PUT', url, body})
-    .then(result => {
-      this.invalidate(url)
-      return result
-    })
   }
   post(url, body, option) {
     return this.request({...option, method: 'POST', url, body})
-    .then(result => {
-      this.invalidate(url)
-      return result
-    })
   }
 
   invalidate(urlPrefix) {
-    this.modifieds = _.mapValues(this.modifieds, (val, key) => _.startsWith(key, urlPrefix))
+    this.modifieds = _.pickBy(this.modifieds, (val, key) => !_.startsWith(key, urlPrefix))
   }
 
   createRunner(func) {
