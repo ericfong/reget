@@ -3,43 +3,7 @@ import _ from 'lodash'
 import stringify from 'querystring-stable-stringify'
 
 import MiddlewareManager from './MiddlewareManager'
-
-
-function getUrl(pathname, query) {
-  let url = pathname
-  if (query) url += '?' + stringify(query)
-  return url
-}
-
-
-class Runner {
-  isGreedy = false
-  constructor(reget, func) {
-    this.reget = reget
-    this.func = func
-    this.runDebounce = _.debounce(this.run, 10)
-  }
-  run = (isGreedy) => {
-    if (this.isGreedy || isGreedy) {
-      this.reget.setGreedy(true)
-    }
-    const ret = this.func()
-    this.reget.setGreedy(false)
-    this.isGreedy = false
-    return ret
-  }
-  runNext(isGreedy) {
-    if (isGreedy) this.isGreedy = true
-    this.runDebounce()
-  }
-  listen() {
-    this.removeListener = this.reget.onChange(this.runDebounce)
-  }
-  unlisten() {
-    if (this.removeListener) this.removeListener()
-  }
-}
-
+import Pinger from './Pinger'
 
 export function cacheMiddleware(ctx) {
   const {method, url, body} = ctx
@@ -68,34 +32,28 @@ export default class Reget extends EventEmitter {
     this._emitChange = _.debounce(() => this.emit('change'), 100)
 
     this.middlewareManager = new MiddlewareManager()
-    // TODO set onlt when 404?
-    // this.use((ctx, next) => {
-    //   return next()
-    //   .then(cacheMiddleware.bind(this))
-    // })
+  }
+
+  getUrl(pathname, query) {
+    let url = pathname
+    if (query) url += '?' + stringify(query)
+    return url
   }
 
   use(path, fn, opts) {
     this.middlewareManager.use(path, fn, opts)
   }
 
-  setGreedy(isGreedy) {
-    this.isGreedy = isGreedy
-  }
-
-  get(pathname, query) {
-    const url = query ? getUrl(pathname, query) : pathname
+  ping({pathname, query, ifModifiedSince}) {
+    const url = this.getUrl(pathname, query)
     const cache = this.caches[url]
     const modified = this.modifieds[url]
 
-    // NOTE check and call load again
-    // modified is wait for push (reget.put and reget.post will also clean modified to trigger load again)
-    // isGreedy is force ping (used in componentWillMount and componentWillReceiveProps to force load data)
-    if (!modified || this.isGreedy) {
+    // check and call load again, modified is wait for push (reget.put and reget.post will also clean modified to trigger load again)
+    if (!modified) {
       const option = {headers: {}}
       if (modified) {
-        option.headers['If-Modified-Since'] = modified
-        option.ifModifiedSince = modified
+        option.ifModifiedSince = option.headers['If-Modified-Since'] = Math.max(modified, ifModifiedSince)
       }
       const result = this.load(url, option)
       // use result directly if load is sync
@@ -107,11 +65,16 @@ export default class Reget extends EventEmitter {
     return cache
   }
 
+  get(pathname, query) {
+    return this.ping({pathname, query})
+  }
+
   load(url, option) {
     const runningPromise = this.promises[url]
     if (runningPromise) return runningPromise
     // request and record the created promise
-    const createdPromise = this.request({...option, method: 'GET', url})
+    const createdPromise = this.promises[url] = this.request({...option, method: 'GET', url})
+    return createdPromise
     .then(result => {
       delete this.promises[url]
       return result
@@ -119,8 +82,6 @@ export default class Reget extends EventEmitter {
       delete this.promises[url]
       throw err
     })
-    this.promises[url] = createdPromise
-    return createdPromise
   }
 
   request(ctx) {
@@ -171,8 +132,8 @@ export default class Reget extends EventEmitter {
     this.modifieds = _.pickBy(this.modifieds, (val, key) => !_.startsWith(key, urlPrefix))
   }
 
-  createRunner(func) {
-    return new Runner(this, func)
+  createPinger(handler) {
+    return new Pinger(this, handler)
   }
 
   onChange(listener) {
