@@ -108,14 +108,10 @@ export default class Reget extends EventEmitter {
   }
 
   load(url, option) {
-    // check promise is running
-    const result = this.promises[url]
-    if (result) {
-      return result
-    }
-
-    this.promises[url] = result
-    return this.request({...option, method: 'GET', url})
+    const runningPromise = this.promises[url]
+    if (runningPromise) return runningPromise
+    // request and record the created promise
+    const createdPromise = this.request({...option, method: 'GET', url})
     .then(result => {
       delete this.promises[url]
       return result
@@ -123,6 +119,8 @@ export default class Reget extends EventEmitter {
       delete this.promises[url]
       throw err
     })
+    this.promises[url] = createdPromise
+    return createdPromise
   }
 
   request(ctx) {
