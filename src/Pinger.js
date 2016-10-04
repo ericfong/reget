@@ -1,28 +1,29 @@
 
 export default class Pinger {
   constructor(reget, handler) {
-    this.reget = reget
+    this._oriReget = reget
     this.handler = handler
 
-    this.createdAt = new Date()
+    this.pingStartAt = new Date()
     // wrap and only expore get function for isolation and more flexible
-    this.wrappedReget = Object.create(this.reget)
-    this.wrappedReget.get = (pathname, query) => {
-      return this.reget.ping({
+    this.reget = Object.create(this._oriReget)
+    this.reget.get = (pathname, query) => {
+      return this._oriReget.ping({
         pathname, query,
-        ifModifiedSince: this.createdAt,
+        pingStartAt: this.pingStartAt,
       })
     }
     this.ping()
   }
 
-  ping() {
-    return this.handler(this.wrappedReget)
+  ping(props) {
+    return this.handler(this.reget, props)
   }
 
   start() {
+    this.pingStartAt = new Date()
     // should be push check. ping checking should be inside run
-    this.removeListener = this.reget.onChange(() => {
+    this.removeListener = this._oriReget.onChange(() => {
       // only run if still listening
       if (this.removeListener) {
         this.ping()

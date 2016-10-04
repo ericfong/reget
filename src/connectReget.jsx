@@ -16,8 +16,8 @@ export function connectReget(getterFunc) {
 
       componentWillMount() {
         if (getterFunc) {
-          this.pinger = this.context.reget.createPinger(reget => {
-            const newState = getterFunc({...this.props, reget})
+          this.pinger = this.context.reget.createPinger((reget, props) => {
+            const newState = getterFunc({...(props || this.props), reget})
             if (newState === null || React.isValidElement(newState)) {
               this._renderElement = newState
             } else {
@@ -32,7 +32,7 @@ export function connectReget(getterFunc) {
 
       componentWillReceiveProps(nextProps) {
         if (this.pinger && !shallowEqual(this.props, nextProps)) {
-          this.pinger.ping()
+          this.pinger.ping(nextProps)
         }
       }
 

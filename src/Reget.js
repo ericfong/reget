@@ -44,7 +44,7 @@ export default class Reget extends EventEmitter {
     this.middlewareManager.use(path, fn, opts)
   }
 
-  ping({pathname, query, ifModifiedSince}) {
+  ping({pathname, query, pingStartAt}) {
     const url = this.getUrl(pathname, query)
     const cache = this.caches[url]
     const modified = this.modifieds[url]
@@ -53,7 +53,10 @@ export default class Reget extends EventEmitter {
     if (!modified) {
       const option = {headers: {}}
       if (modified) {
-        option.ifModifiedSince = option.headers['If-Modified-Since'] = Math.max(modified, ifModifiedSince)
+        option.ifModifiedSince = option.headers['If-Modified-Since'] = modified
+      }
+      if (pingStartAt) {
+        option.pingStartAt = pingStartAt
       }
       const result = this.load(url, option)
       // use result directly if load is sync
