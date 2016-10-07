@@ -31,4 +31,24 @@ describe('createMiddlewares', function() {
     should(!!result.isFulfilled).be.false()
     should(result).equal('Http Body')
   })
+
+  it('path regexp', () => {
+    const middlewares = createMiddlewares()
+
+    middlewares.use('lesson', (ctx) => {
+      ctx.body = ctx.inputs.number + 1
+      return ctx
+    })
+
+    const ctx = {
+      url: 'lesson?courseId=7bLXN46m&branchId=bD0n20Wn',
+      inputs: {number: 1},
+    }
+    const result = middlewares(ctx).then(ctx => ctx.body)
+    should(result.value).equal(2)
+
+    should(middlewares({
+      url: 'lesson/bD0n20Wn',
+    }).value.body).null()
+  })
 })

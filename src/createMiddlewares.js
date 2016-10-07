@@ -48,9 +48,9 @@ export default function createMiddlewares() {
     } else {
       const re = pathToRegexp(pathPattern, opts)
       middlewareArray.push(function(ctx, next) {
-        // match url
-        const m = re.exec(ctx.url)
-        // console.log('match', pathPattern, ctx.url, m)
+        // match path
+        const m = re.exec(ctx.path)
+        // console.log('match', pathPattern, ctx, m)
         if (m) {
           const args = m.slice(1).map(decode)
           ctx.routePath = pathPattern

@@ -16,6 +16,12 @@ export default class CallContext {
   constructor(ctxData) {
     if (ctxData) {
       Object.assign(this, ctxData)
+
+      // get url and path
+      const url = this.url || '/'
+      const queryIndex = url.indexOf('?')
+      this.path = queryIndex >= 0 ? url.substr(0, queryIndex) : url
+
       this.headers = {}
       _.each(ctxData.headers, (val, field) => {
         this.headers[field.toLowerCase()] = val
