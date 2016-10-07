@@ -33,7 +33,7 @@ export default function createMiddlewares() {
   const middlewareArray = []
 
   const runner = function(ctxData) {
-    const ctx = new CallContext(ctxData)
+    const ctx = ctxData instanceof CallContext ? ctxData : new CallContext(ctxData)
     return runMiddlewares(ctx, middlewareArray)
   }
 

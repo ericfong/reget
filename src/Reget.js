@@ -3,14 +3,15 @@ import _ from 'lodash'
 import stringify from 'querystring-stable-stringify'
 
 import Pinger from './Pinger'
+import CallContext from './CallContext'
 
 export function cacheMiddleware(ctx) {
-  const {method, url, body} = ctx
+  const {method, url, body, reget} = ctx
   if (method === 'GET') {
-    ctx.body = this.caches[url]
+    ctx.body = reget.caches[url]
   } else {
     // console.log('CACHE SET', url, body, 'DEFAULT')
-    this.caches[url] = body
+    reget.caches[url] = body
   }
 }
 
@@ -81,10 +82,12 @@ export default class Reget extends EventEmitter {
     })
   }
 
-  request(ctx) {
-    const {url, method} = ctx
+  request(ctxData) {
+    const ctx = new CallContext(ctxData)
+    ctx.reget = this
     return this.middlewares(ctx)
     .then(res => {
+      const {url, method} = res
       let body = res && res.body
       this.modifieds[url] = new Date()
       if (method === 'GET') {

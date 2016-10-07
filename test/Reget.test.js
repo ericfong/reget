@@ -7,7 +7,7 @@ describe('Reget', function() {
   it('sync', async () => {
     const middlewares = createMiddlewares()
     const reget = new Reget({middlewares})
-    middlewares.use('memory/:key', cacheMiddleware.bind(reget))
+    middlewares.use('memory/:key', cacheMiddleware)
 
     should(reget.get('memory/me')).be.undefined()
 
@@ -27,7 +27,7 @@ describe('Reget', function() {
         }, 1)
       })
     })
-    middlewares.use('memory/:key', cacheMiddleware.bind(reget))
+    middlewares.use('memory/:key', cacheMiddleware)
 
     // TODO await whole stack
     should(reget.get('user/me')).be.undefined()
@@ -36,7 +36,7 @@ describe('Reget', function() {
   it('route', async () => {
     const reget = new Reget()
     const middlewares = reget.middlewares = createMiddlewares()
-    middlewares.use('memory/:key', cacheMiddleware.bind(reget))
+    middlewares.use('memory/:key', cacheMiddleware)
     const _localStorage = {}
     middlewares.use('localStorage/:key', ctx => {
       const {method, url, body} = ctx
