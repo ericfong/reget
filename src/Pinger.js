@@ -1,17 +1,18 @@
 
 export default class Pinger {
-  constructor(reget, handler) {
-    this._oriReget = reget
+  constructor(oriReget, handler) {
+    this._oriReget = oriReget
     this.handler = handler
 
     this.expectDate = new Date()
     // wrap and only expore get function for isolation and more flexible
-    this.reget = Object.create(this._oriReget)
+    this.reget = Object.create(oriReget)
     this.reget.get = (pathname, query) => {
-      return this._oriReget.ping({
-        pathname, query,
-        expectDate: this.expectDate,
-      })
+      return oriReget.ping({pathname, query, expectDate: this.expectDate}).cache
+    }
+    this.reget.getPromise = (pathname, query) => {
+      const {cache, promise} = oriReget.ping({pathname, query, expectDate: this.expectDate})
+      return promise || Promise.resolve(cache)
     }
     this.ping()
   }

@@ -38,8 +38,9 @@ export default class Reget extends EventEmitter {
 
   ping({pathname, query, expectDate}) {
     const url = this.getUrl(pathname, query)
-    const cache = this.caches[url]
     const modified = this.modifieds[url]
+    let cache = this.caches[url]
+    let promise
 
     // check and call load again, modified is wait for push (reget.put and reget.post will also clean modified to trigger load again)
     if (!modified) {
@@ -50,18 +51,18 @@ export default class Reget extends EventEmitter {
       if (expectDate) {
         option.expectDate = expectDate
       }
-      const result = this.load(url, option)
-      // use result directly if load is sync
-      if (result.isFulfilled) {
-        return result.value
+      promise = this.load(url, option)
+      // use promise directly if load is sync
+      if (promise.isFulfilled) {
+        cache = promise.value
       }
     }
 
-    return cache
+    return {cache, promise}
   }
 
   get(pathname, query) {
-    return this.ping({pathname, query})
+    return this.ping({pathname, query}).cache
   }
 
   load(url, option) {
@@ -93,7 +94,6 @@ export default class Reget extends EventEmitter {
     .then(res => {
       const {url, method} = res
       let body = res && res.body
-      this.modifieds[url] = new Date()
       if (method === 'GET') {
         // if (data && data.$caches) {
         //   // key-value pair caches
@@ -110,10 +110,8 @@ export default class Reget extends EventEmitter {
           body = this.caches[url]
         } else {
           // simple data cache
-          // console.log('CACHE SET', url, body, ctx)
-          this.caches[url] = body
+          this.cache(url, body)
         }
-        this.emitChange()
         return body
       } else {
         // for PUT and POST, suppose the data for this url will be changed
@@ -130,6 +128,12 @@ export default class Reget extends EventEmitter {
   }
   post(url, body, option) {
     return this.request({...option, method: 'POST', url, body})
+  }
+
+  cache(url, body) {
+    this.caches[url] = body
+    this.modifieds[url] = new Date()
+    this.emitChange()
   }
 
   invalidate(urlPrefix) {

@@ -15,19 +15,18 @@ export function connectReget(getterFunc) {
       }
 
       componentWillMount() {
-        if (getterFunc) {
-          this.pinger = this.context.reget.createPinger((reget, props) => {
-            const newState = getterFunc({...(props || this.props), reget})
-            if (newState === null || React.isValidElement(newState)) {
-              this._renderElement = newState
-            } else {
-              this._renderElement = undefined
-              if (newState) {
-                this.setState(newState)
-              }
+        this.pinger = this.context.reget.createPinger((reget, props) => {
+          if (!getterFunc) return
+          const newState = getterFunc({...(props || this.props), reget})
+          if (newState === null || React.isValidElement(newState)) {
+            this._renderElement = newState
+          } else {
+            this._renderElement = undefined
+            if (newState) {
+              this.setState(newState)
             }
-          })
-        }
+          }
+        })
       }
 
       componentWillReceiveProps(nextProps) {
@@ -55,7 +54,8 @@ export function connectReget(getterFunc) {
 
       render() {
         if (this._renderElement !== undefined) return this._renderElement
-        return <WrappedComponent {...this.props} {...this.state} reget={this.context.reget}  />
+        const reget = this.pinger.reget || this.context.reget
+        return <WrappedComponent {...this.props} {...this.state} reget={reget}  />
       }
     }
     WithCache.displayName = `${WrappedComponent.name}Reget`
