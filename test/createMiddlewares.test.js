@@ -32,23 +32,27 @@ describe('createMiddlewares', function() {
     should(result).equal('Http Body')
   })
 
-  it('path regexp', () => {
+  it('path regexp', async () => {
     const middlewares = createMiddlewares()
 
-    middlewares.use('lesson', (ctx) => {
-      ctx.body = ctx.inputs.number + 1
-      return ctx
+    middlewares.use('lesson', async (ctx, next) => {
+      await next()
+      ctx.body = ctx.body + ' World'
+    })
+    middlewares.use(ctx => {
+      ctx.body = 'Hello'
     })
 
-    const ctx = {
-      url: 'lesson?courseId=7bLXN46m&branchId=bD0n20Wn',
-      inputs: {number: 1},
-    }
-    const result = middlewares(ctx).then(ctx => ctx.body)
-    should(result.value).equal(2)
+    should((
+      await middlewares({
+        url: 'lesson?courseId=7bLXN46m&branchId=bD0n20Wn',
+      })
+    ).body).equal('Hello World')
 
-    should(middlewares({
-      url: 'lesson/bD0n20Wn',
-    }).value.body).null()
+    should((
+      await middlewares({
+        url: 'lesson/bD0n20Wn',
+      })
+    ).body).equal('Hello')
   })
 })
