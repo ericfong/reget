@@ -2,7 +2,6 @@ import { EventEmitter } from 'events'
 import _ from 'lodash'
 import stringify from 'querystring-stable-stringify'
 
-import MiddlewareManager from './MiddlewareManager'
 import Pinger from './Pinger'
 
 export function cacheMiddleware(ctx) {
@@ -17,8 +16,9 @@ export function cacheMiddleware(ctx) {
 
 
 export default class Reget extends EventEmitter {
-  constructor({caches} = {}) {
+  constructor({caches, middlewares} = {}) {
     super()
+    this.middlewares = middlewares
     this.caches = caches || {}
 
     // meta
@@ -30,18 +30,12 @@ export default class Reget extends EventEmitter {
 
     // change event debounce for 100ms
     this._emitChange = _.debounce(() => this.emit('change'), 100)
-
-    this.middlewareManager = new MiddlewareManager()
   }
 
   getUrl(pathname, query) {
     let url = pathname
     if (query) url += '?' + stringify(query)
     return url
-  }
-
-  use(path, fn, opts) {
-    this.middlewareManager.use(path, fn, opts)
   }
 
   ping({pathname, query, pingStartAt}) {
@@ -89,7 +83,7 @@ export default class Reget extends EventEmitter {
 
   request(ctx) {
     const {url, method} = ctx
-    return this.middlewareManager.run(ctx)
+    return this.middlewares(ctx)
     .then(res => {
       let body = res && res.body
       this.modifieds[url] = new Date()

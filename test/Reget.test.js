@@ -1,11 +1,13 @@
 import should from 'should'
 
 import Reget, {cacheMiddleware} from '../src/Reget'
+import createMiddlewares from '../src/createMiddlewares'
 
 describe('Reget', function() {
   it('sync', async () => {
-    const reget = new Reget()
-    reget.use('memory/:key', cacheMiddleware.bind(reget))
+    const middlewares = createMiddlewares()
+    const reget = new Reget({middlewares})
+    middlewares.use('memory/:key', cacheMiddleware.bind(reget))
 
     should(reget.get('memory/me')).be.undefined()
 
@@ -16,7 +18,8 @@ describe('Reget', function() {
 
   it('async', async () => {
     const reget = new Reget()
-    reget.use(async ctx => {
+    const middlewares = reget.middlewares = createMiddlewares()
+    middlewares.use(async ctx => {
       return new Promise(resolve => {
         setTimeout(() => {
           ctx.body = 'fetch data from backend'
@@ -24,7 +27,7 @@ describe('Reget', function() {
         }, 1)
       })
     })
-    reget.use('memory/:key', cacheMiddleware.bind(reget))
+    middlewares.use('memory/:key', cacheMiddleware.bind(reget))
 
     // TODO await whole stack
     should(reget.get('user/me')).be.undefined()
@@ -32,9 +35,10 @@ describe('Reget', function() {
 
   it('route', async () => {
     const reget = new Reget()
-    reget.use('memory/:key', cacheMiddleware.bind(reget))
+    const middlewares = reget.middlewares = createMiddlewares()
+    middlewares.use('memory/:key', cacheMiddleware.bind(reget))
     const _localStorage = {}
-    reget.use('localStorage/:key', ctx => {
+    middlewares.use('localStorage/:key', ctx => {
       const {method, url, body} = ctx
       if (method === 'GET') {
         ctx.body = _localStorage[url]
