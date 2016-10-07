@@ -1,5 +1,6 @@
 import should from 'should'
 import React from 'react'
+import './setup'
 import {mount, shallow} from 'enzyme'
 
 import {connectReget, RegetProvider, Reget, createMiddlewares} from '../src/'
@@ -36,11 +37,7 @@ describe('connectReget', function() {
     )
     wrapper.html().should.be.exactly('<div></div>')
 
-    await new Promise(resolve => {
-      setTimeout(() => {
-        resolve('Wait after re-render')
-      }, 300)
-    })
+    await reget.wait()
 
     wrapper.html().should.be.exactly('<div>Http Result</div>')
   })

@@ -28,9 +28,6 @@ export default class Reget extends EventEmitter {
     _.each(this.caches, (val, key) => {
       this.modifieds[key] = Date.now()
     })
-
-    // change event debounce for 100ms
-    this._emitChange = _.debounce(() => this.emit('change'), 100)
   }
 
   getUrl(pathname, query) {
@@ -82,6 +79,13 @@ export default class Reget extends EventEmitter {
     })
   }
 
+  wait() {
+    return Promise.all(_.values(this.promises).concat(this._emitPromise))
+    .then(() => {
+      return _.isEmpty(this.promises) && !this._emitPromise ? true : this.wait()
+    })
+  }
+
   request(ctxData) {
     const ctx = new CallContext(ctxData)
     ctx.reget = this
@@ -109,12 +113,12 @@ export default class Reget extends EventEmitter {
           // console.log('CACHE SET', url, body, ctx)
           this.caches[url] = body
         }
-        this._emitChange()
+        this.emitChange()
         return body
       } else {
         // for PUT and POST, suppose the data for this url will be changed
         this.invalidate(url)
-        this._emitChange()
+        this.emitChange()
         return body
       }
     })
@@ -134,6 +138,18 @@ export default class Reget extends EventEmitter {
 
   createPinger(handler) {
     return new Pinger(this, handler)
+  }
+
+  emitChange() {
+    // change event debounce for 100ms
+    // this._emitChange = _.debounce(() => this.emit('change'), 100)
+    if (this._emitPromise) return
+    this._emitPromise = new Promise(resolve => {
+      setTimeout(() => resolve(), 100)
+    }).then(() => {
+      delete this._emitPromise
+      this.emit('change')
+    })
   }
 
   onChange(listener) {
