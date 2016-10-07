@@ -39,7 +39,7 @@ export default class Reget extends EventEmitter {
     return url
   }
 
-  ping({pathname, query, pingStartAt}) {
+  ping({pathname, query, expectDate}) {
     const url = this.getUrl(pathname, query)
     const cache = this.caches[url]
     const modified = this.modifieds[url]
@@ -50,8 +50,8 @@ export default class Reget extends EventEmitter {
       if (modified) {
         option.ifModifiedSince = option.headers['If-Modified-Since'] = modified
       }
-      if (pingStartAt) {
-        option.pingStartAt = pingStartAt
+      if (expectDate) {
+        option.expectDate = expectDate
       }
       const result = this.load(url, option)
       // use result directly if load is sync
