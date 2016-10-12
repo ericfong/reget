@@ -22,10 +22,10 @@ export default class Reget extends EventEmitter {
     this.caches = caches || {}
 
     // meta
-    this.modifieds = {}
+    this.cachedDates = {}
     this.promises = {}
     _.each(this.caches, (val, key) => {
-      this.modifieds[key] = Date.now()
+      this.cachedDates[key] = Date.now()
     })
   }
 
@@ -35,20 +35,18 @@ export default class Reget extends EventEmitter {
     return url
   }
 
-  ping({pathname, query, expectDate}) {
+  ping({pathname, query, ifModifiedSince}) {
     const url = this.getUrl(pathname, query)
-    const modified = this.modifieds[url]
+    const cachedDate = this.cachedDates[url]
     let cache = this.caches[url]
     let promise
 
-    // check and call load again, modified is wait for push (reget.put and reget.post will also clean modified to trigger load again)
-    if (!modified) {
+    // check and call load again, cachedDate is wait for push (reget.put and reget.post will also clean cachedDate to trigger load again)
+    // console.log(pathname, cachedDate, ifModifiedSince)
+    if (!cachedDate || cachedDate < ifModifiedSince) {
       const option = {headers: {}}
-      if (modified) {
-        option.ifModifiedSince = option.headers['If-Modified-Since'] = modified
-      }
-      if (expectDate) {
-        option.expectDate = expectDate
+      if (cachedDate) {
+        option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedDate, ifModifiedSince)) : cachedDate
       }
       promise = this.load(url, option)
       // use promise directly if load is sync
@@ -98,14 +96,14 @@ export default class Reget extends EventEmitter {
         //   // key-value pair caches
         //   _.each(data.$caches, (subCache, subUrl) => {
         //     this.caches[subUrl] = subCache
-        //     this.modifieds[subUrl] = new Date()
+        //     this.cachedDates[subUrl] = new Date()
         //   })
         //   _.each(data.$cacheTimestamps, (timestamp, subUrl) => {
-        //     this.modifieds[subUrl] = timestamp
+        //     this.cachedDates[subUrl] = timestamp
         //   })
         // } else
         if (res && res.status === 304) {
-          // no change, modifieds already set
+          // no change, cachedDates already set
           body = this.caches[url]
         } else {
           // simple data cache
@@ -131,12 +129,12 @@ export default class Reget extends EventEmitter {
 
   cache(url, body) {
     this.caches[url] = body
-    this.modifieds[url] = new Date()
+    this.cachedDates[url] = new Date()
     this.emitChange()
   }
 
   invalidate(urlPrefix) {
-    this.modifieds = _.pickBy(this.modifieds, (val, key) => !_.startsWith(key, urlPrefix))
+    this.cachedDates = _.pickBy(this.cachedDates, (val, key) => !_.startsWith(key, urlPrefix))
   }
 
   createPinger(handler) {

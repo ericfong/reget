@@ -4,6 +4,10 @@ import Reget, {cacheMiddleware} from '../src/Reget'
 import createMiddlewares from '../src/createMiddlewares'
 import {route} from '../src'
 
+function sleep(time) {
+  return new Promise(resolve => setTimeout(resolve, time))
+}
+
 describe('Reget', function() {
   it('sync', async () => {
     const middlewares = createMiddlewares()
@@ -48,12 +52,34 @@ describe('Reget', function() {
       }
     }))
 
-    // should(reget.get('memory/me')).be.undefined()
-    // reget.put('memory/me', 'Data')
-    // should(reget.get('memory/me')).be.equal('Data')
+    should(reget.get('memory/me')).be.undefined()
+    reget.put('memory/me', 'Data')
+    should(reget.get('memory/me')).be.equal('Data')
 
     should(reget.get('localStorage/foo')).be.undefined()
     reget.put('localStorage/foo', 'Data')
     should(reget.get('localStorage/foo')).be.equal('Data_localStorage')
+  })
+
+  it('number of call when cached and pinger time', async () => {
+    let numOfCall = 0
+    const reget = new Reget({
+      middlewares: createMiddlewares(ctx => {
+        if (ctx.method === 'GET') numOfCall++
+        ctx.body = 'X'
+      }),
+    })
+
+    reget.get('numberOfCalls')
+    should(numOfCall).equal(1)
+    reget.get('numberOfCalls')
+    should(numOfCall).equal(1)
+
+    await sleep(10)
+
+    reget.createPinger(wrappedReget => {
+      wrappedReget.get('numberOfCalls')
+      should(numOfCall).equal(2)
+    })
   })
 })

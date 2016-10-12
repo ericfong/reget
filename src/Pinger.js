@@ -4,14 +4,14 @@ export default class Pinger {
     this._oriReget = oriReget
     this.handler = handler
 
-    this.expectDate = new Date()
+    this.preferredDate = new Date()
     // wrap and only expore get function for isolation and more flexible
     this.reget = Object.create(oriReget)
     this.reget.get = (pathname, query) => {
-      return oriReget.ping({pathname, query, expectDate: this.expectDate}).cache
+      return oriReget.ping({pathname, query, ifModifiedSince: this.preferredDate}).cache
     }
     this.reget.getPromise = (pathname, query) => {
-      const {cache, promise} = oriReget.ping({pathname, query, expectDate: this.expectDate})
+      const {cache, promise} = oriReget.ping({pathname, query, ifModifiedSince: this.preferredDate})
       return promise || Promise.resolve(cache)
     }
     this.ping()
@@ -22,7 +22,7 @@ export default class Pinger {
   }
 
   start() {
-    this.expectDate = new Date()
+    this.preferredDate = new Date()
     // should be push check. ping checking should be inside run
     this.removeListener = this._oriReget.onChange(() => {
       // only run if still listening
