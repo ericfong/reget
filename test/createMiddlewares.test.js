@@ -57,4 +57,42 @@ describe('createMiddlewares', function() {
       })
     ).body).equal('Hello')
   })
+
+  it('set middlewares during create', async () => {
+    const middlewares = createMiddlewares(ctx => {
+      ctx.body = ctx.input + 1
+    })
+    should((
+      await middlewares({
+        input: 1,
+      })
+    ).body).equal(2)
+
+    const middlewares2 = createMiddlewares([
+      async (ctx, next) => {
+        await next()
+        ctx.body += 1
+      },
+      ctx => ctx.body = ctx.input + 1,
+    ])
+    should((
+      await middlewares2({
+        input: 1,
+      })
+    ).body).equal(3)
+
+    const middlewares3 = createMiddlewares()
+    middlewares3.use([
+      async (ctx, next) => {
+        await next()
+        ctx.body += 1
+      },
+      ctx => ctx.body = ctx.input + 1,
+    ])
+    should((
+      await middlewares3({
+        input: 1,
+      })
+    ).body).equal(3)
+  })
 })

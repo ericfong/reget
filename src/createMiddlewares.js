@@ -17,8 +17,8 @@ function runMiddlewares(ctx, middlewares, i = 0) {
   }
 
   return SyncPromise.resolve(result, error)
-  // fill result with original ctx, if undefined is return
-  .then(newCtx => newCtx || ctx)
+  // always use one and original ctx for all middlewares
+  // .then(newCtx => newCtx || ctx)
 }
 
 
@@ -28,6 +28,8 @@ export default function createMiddlewares(middlewares) {
   const runner = function(ctxData) {
     const ctx = ctxData instanceof CallContext ? ctxData : new CallContext(ctxData)
     return runMiddlewares(ctx, middlewareArray)
+    // always return the original ctx
+    .then(() => ctx)
   }
 
   runner.use = function(fn) {
@@ -39,7 +41,7 @@ export default function createMiddlewares(middlewares) {
     }
   }
 
-  if (!middlewares) {
+  if (middlewares) {
     runner.use(middlewares)
   }
 
