@@ -1,6 +1,6 @@
 {
   "name": "reget",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "fetch HTTP like Sync call in React",
   "main": "lib/index.js",
   "scripts": {
