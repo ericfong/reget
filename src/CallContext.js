@@ -7,7 +7,7 @@ export default class CallContext {
   path = '/'
   ifModifiedSince = null
   // headers = {}
-  inputs = null
+  input = null
 
   // res
   statusCode = 404

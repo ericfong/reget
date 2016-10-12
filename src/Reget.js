@@ -6,12 +6,11 @@ import Pinger from './Pinger'
 import CallContext from './CallContext'
 
 export function cacheMiddleware(ctx) {
-  const {method, url, body, reget} = ctx
+  const {method, url, input, reget} = ctx
   if (method === 'GET') {
     ctx.body = reget.caches[url]
   } else {
-    // console.log('CACHE SET', url, body, 'DEFAULT')
-    reget.caches[url] = body
+    reget.caches[url] = input
   }
 }
 
@@ -123,11 +122,11 @@ export default class Reget extends EventEmitter {
   }
 
   // write through cache functions
-  put(url, body, option) {
-    return this.request({...option, method: 'PUT', url, body})
+  put(url, input, option) {
+    return this.request({...option, method: 'PUT', url, input})
   }
-  post(url, body, option) {
-    return this.request({...option, method: 'POST', url, body})
+  post(url, input, option) {
+    return this.request({...option, method: 'POST', url, input})
   }
 
   cache(url, body) {
