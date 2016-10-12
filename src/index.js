@@ -6,3 +6,5 @@ export connectReget, {RegetProvider} from './connectReget'
 export createMiddlewares from './createMiddlewares'
 
 export SyncPromise from './SyncPromise'
+
+export route from './route'

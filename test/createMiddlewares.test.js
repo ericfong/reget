@@ -1,5 +1,7 @@
 import should from 'should'
+
 import createMiddlewares from '../src/createMiddlewares'
+import {route} from '../src'
 
 describe('createMiddlewares', function() {
   it('sync return', () => {
@@ -35,10 +37,10 @@ describe('createMiddlewares', function() {
   it('path regexp', async () => {
     const middlewares = createMiddlewares()
 
-    middlewares.use('lesson', async (ctx, next) => {
+    middlewares.use(route('lesson', async (ctx, next) => {
       await next()
       ctx.body = ctx.body + ' World'
-    })
+    }))
     middlewares.use(ctx => {
       ctx.body = 'Hello'
     })

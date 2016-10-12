@@ -1,13 +1,6 @@
-import _ from 'lodash'
-import pathToRegexp from 'path-to-regexp'
-
 import SyncPromise from './SyncPromise'
 import CallContext from './CallContext'
 
-
-function decode(val) {
-  if (val) return decodeURIComponent(val)
-}
 
 function runMiddlewares(ctx, middlewares, i = 0) {
   const curMiddleware = middlewares[i]
@@ -29,7 +22,7 @@ function runMiddlewares(ctx, middlewares, i = 0) {
 }
 
 
-export default function createMiddlewares() {
+export default function createMiddlewares(middlewares) {
   const middlewareArray = []
 
   const runner = function(ctxData) {
@@ -37,32 +30,17 @@ export default function createMiddlewares() {
     return runMiddlewares(ctx, middlewareArray)
   }
 
-  runner.use = function(pathPattern, fn, opts) {
-    if (typeof pathPattern !== 'string') {
-      fn = pathPattern
-      pathPattern = '/'
-    }
-
-    if (pathPattern === '/') {
-      middlewareArray.push(fn)
+  runner.use = function(fn) {
+    if (!fn) return
+    if (Array.isArray(fn)) {
+      fn.forEach(f => middlewareArray.push(f))
     } else {
-      const re = pathToRegexp(pathPattern, opts)
-      middlewareArray.push(function(ctx, next) {
-        // match path
-        const m = re.exec(ctx.path)
-        // console.log('match', pathPattern, ctx, m)
-        if (m) {
-          const args = m.slice(1).map(decode)
-          ctx.routePath = pathPattern
-          args.unshift(ctx)
-          args.push(next)
-          return SyncPromise.resolve(fn.apply(ctx, args))
-        }
-
-        // miss
-        return next()
-      })
+      middlewareArray.push(fn)
     }
+  }
+
+  if (!middlewares) {
+    runner.use(middlewares)
   }
 
   return runner
