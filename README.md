@@ -84,20 +84,21 @@ reget.get('memory/foo') === 'bar'
 reget will create a CallContext instance and pass down to middlewares
 
 __CallContext__
-- request related
- - method (default 'GET')
- - url (url with query string, default '/')
- - path (url without query string, default '/')
- - ifModifiedSince (default null)
- - headers (default undefined)
- - input (request body or data, default null)
+```js
+// request related
+method: 'GET' // default 'GET'
+url: '/' // url with query string, default '/'
+path: '/' // url without query string, default '/'
+ifModifiedSince: null // default null
+headers: null // default undefined
+input: null // request body or data, default null
 
-- response related
- - status (http-like response status getter and setter, default 404)
- - body (http-like response body getter and setter, default null)
- - get function: get normalized header
- - set function: set header
-
+// response related
+status: 404 // http-like response status getter and setter, default 404)
+body: null  // http-like response body getter and setter, default null)
+get: function() {} // get normalized header
+set: function() {} // set header
+```
 
 
 ## Middlewares
