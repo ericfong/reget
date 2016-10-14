@@ -65,7 +65,7 @@ const reget = new Reget({middlewares})
 
 
 
-### Use Reget alone
+## Use Reget alone
 Reget can be a
 ```js
 import {Reget, createMiddlewares, route, cacheMiddleware} from 'reget'
@@ -80,7 +80,7 @@ reget.put('memory/foo', 'bar')
 reget.get('memory/foo') === 'bar'
 ```
 
-#### API
+### API
 reget will create a CallContext instance and pass down to middlewares
 
 __CallContext__
@@ -100,7 +100,7 @@ __CallContext__
 
 
 
-### Middlewares
+## Middlewares
 koa like middlewares system
 ```js
 import {createMiddlewares, route} from 'reget'
@@ -122,7 +122,7 @@ const returnCtx = await runMiddlewares(ctx)
 // returnCtx.body === 'Hello World'
 ```
 
-#### API
+### API
 
 __middlewares.use(middlewares)__
 middlewares can be array or single functions, to be run according to the append order
@@ -134,7 +134,7 @@ __route(pathToRegExp, middleware, optionsForRegExp)__
 like koa-route, route middleware based on ctx.url. Path pattern use [path-to-regexp](https://www.npmjs.com/package/path-to-regexp)
 
 
-### SyncPromise
+## SyncPromise
 SyncPromise can wrap a value into a Promise like object. Why? because normal Promise .then is not sync
 
 ```js
