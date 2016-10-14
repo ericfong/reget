@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 export default class CallContext {
-  // req
+  // request related
   method = 'GET'
   url = '/'
   path = '/'
@@ -9,7 +9,7 @@ export default class CallContext {
   // headers = {}
   input = null
 
-  // res
+  // response related
   statusCode = 404
   _body = null
 

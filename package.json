@@ -1,7 +1,7 @@
 {
   "name": "reget",
   "version": "0.6.6",
-  "description": "fetch HTTP like Sync call in React",
+  "description": "React reactive cache for any async calls, http fetching, or memory store accesses",
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "babel src --out-dir lib",
@@ -42,10 +42,13 @@
     "url": "git+https://github.com/ericfong/reget.git"
   },
   "keywords": [
+    "react",
+    "reactive",
+    "cache",
     "fetch",
     "http",
     "sync",
-    "react"
+    "async"
   ],
   "author": "Eric Fong",
   "license": "MIT",

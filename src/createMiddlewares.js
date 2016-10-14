@@ -33,12 +33,13 @@ export default function createMiddlewares(middlewares) {
   }
 
   runner.use = function(fn) {
-    if (!fn) return
+    if (!fn) return this
     if (Array.isArray(fn)) {
       fn.forEach(f => middlewareArray.push(f))
     } else {
       middlewareArray.push(fn)
     }
+    return this
   }
 
   if (middlewares) {
