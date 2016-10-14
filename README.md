@@ -83,7 +83,7 @@ reget.get('memory/foo') === 'bar'
 ### API
 reget will create a CallContext instance and pass down to middlewares
 
-__CallContext__
+__CallContext fields, getters and setters__
 ```js
 // request related
 method: 'GET' // default 'GET'
