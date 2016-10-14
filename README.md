@@ -2,6 +2,15 @@
 
 React reactive cache for any async calls, http fetching, or memory store accesses.
 
+[![state](https://img.shields.io/badge/state-stable_and_welcome_review-green.svg)]()
+
+[![npm](https://img.shields.io/npm/dt/reget.svg?maxAge=2592000?style=flat-square)]()
+[![npm](https://img.shields.io/npm/v/reget.svg)]()
+[![npm](https://img.shields.io/npm/l/reget.svg)]()
+
+[![NPM](https://nodei.co/npm-dl/reget.png?months=1)](https://nodei.co/npm/reget/)
+
+
 __How It works?__
 
 reget is simple key-value cache. During data getting, reget will call a list of middlewares if cache is missing or too old. Result from middlewares will put into the cache and notify all listeners.
