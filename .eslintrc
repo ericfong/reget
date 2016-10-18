@@ -1,7 +1,6 @@
 {
   "extends": ["eslint:recommended", "plugin:react/recommended"],
   "plugins": ["import", "react"],
-  "//plugins": ["import", "babel", "lodash", "mocha", "react"],
   "rules": {
     "react/prop-types": 0,
     semi: [1, 'never'],
@@ -17,7 +16,8 @@
     "import/default": 2,
     "import/export": 2,
     "import/newline-after-import": "warn",
-    "no-trailing-spaces": 1
+    "no-trailing-spaces": 1,
+    "no-console": ["warn", { allow: ["warn", "error"] }],
   },
   "settings": {
     "import/resolver": {

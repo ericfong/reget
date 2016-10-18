@@ -1,6 +1,7 @@
 import React, {PropTypes, Component} from 'react'
 import shallowEqual from 'fbjs/lib/shallowEqual'
 
+import AutoRunner from './AutoRunner'
 
 export function connectReget(getterFunc) {
   return (WrappedComponent) => {
@@ -15,7 +16,7 @@ export function connectReget(getterFunc) {
       }
 
       componentWillMount() {
-        this.pinger = this.context.reget.createPinger((reget, props) => {
+        this.runner = new AutoRunner(this.context.reget, (reget, props, changes) => {
           if (!getterFunc) return
           const newState = getterFunc({...(props || this.props), reget})
           if (newState === null || React.isValidElement(newState)) {
@@ -26,21 +27,21 @@ export function connectReget(getterFunc) {
               this.setState(newState)
             }
           }
-        })
+        }, true)
       }
 
       componentWillReceiveProps(nextProps) {
-        if (this.pinger && !shallowEqual(this.props, nextProps)) {
-          this.pinger.ping(nextProps)
+        if (!shallowEqual(this.props, nextProps)) {
+          this.runner.run(nextProps)
         }
       }
 
       componentDidMount() {
-        if (this.pinger) this.pinger.start()
+        if (this.runner) this.runner.start()
       }
 
       componentWillUnmount () {
-        if (this.pinger) this.pinger.stop()
+        if (this.runner) this.runner.stop()
       }
 
       shouldComponentUpdate(nextProps, nextState) {
@@ -54,7 +55,7 @@ export function connectReget(getterFunc) {
 
       render() {
         if (this._renderElement !== undefined) return this._renderElement
-        const reget = this.pinger.reget || this.context.reget
+        const reget = this.runner || this.context.reget
         return <WrappedComponent {...this.props} {...this.state} reget={reget}  />
       }
     }

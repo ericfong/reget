@@ -2,6 +2,7 @@ import should from 'should'
 
 import Reget, {cacheMiddleware} from '../src/Reget'
 import createMiddlewares from '../src/createMiddlewares'
+import AutoRunner from '../src/AutoRunner'
 import {route} from '../src'
 
 function sleep(time) {
@@ -77,7 +78,7 @@ describe('Reget', function() {
 
     await sleep(10)
 
-    reget.createPinger(wrappedReget => {
+    new AutoRunner(reget, wrappedReget => {
       wrappedReget.get('numberOfCalls')
       should(numOfCall).equal(2)
     })

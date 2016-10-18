@@ -19,6 +19,10 @@ export default class CacheStore {
     return this.store[key]
   }
 
+  getCachedTime(key) {
+    return this.cachedTimes[key]
+  }
+
   set(key, value) {
     if (typeof key === 'object') {
       Object.assign(this.store, key)
@@ -31,7 +35,6 @@ export default class CacheStore {
       const time = this.cachedTimes[key] = new Date()
       this._emitChange(key, time)
     }
-    return this
   }
 
   invalidate(key, allSuffix) {
@@ -52,7 +55,6 @@ export default class CacheStore {
       this._emitChange(this.cachedTimes)
       this.cachedTimes = {}
     }
-    return this
   }
 
 
@@ -63,7 +65,6 @@ export default class CacheStore {
 
     if (!this.watcherLists[key]) this.watcherLists[key] = [fn]
     else this.watcherLists[key].push(fn)
-    return this
   }
 
   hasWatch(key) {
@@ -89,7 +90,6 @@ export default class CacheStore {
 
     const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== fn)
     if (newWatchers.length === 0) delete this.watcherLists[key]
-    return this
   }
 
 
@@ -130,6 +130,10 @@ export default class CacheStore {
     })
   }
 
+  hasPendingEvent() {
+    return !!this._changePromise
+  }
+
   wait() {
     return this._changePromise ? this._changePromise : Promise.resolve()
   }
@@ -143,6 +147,5 @@ export default class CacheStore {
     this.cachedTimes = _.pickBy(this.cachedTimes, time => time > expiredAt)
     // only keep store which has cachedTimes
     this.store = _.pickBy(this.store, (value, k) => this.cachedTimes[k] || this.watcherLists[k])
-    return this
   }
 }

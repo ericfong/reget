@@ -1,32 +1,25 @@
-import { EventEmitter } from 'events'
 import _ from 'lodash'
 import stringify from 'querystring-stable-stringify'
 
-import Pinger from './Pinger'
+import CacheStore from './CacheStore'
+import createMiddlewares from './createMiddlewares'
 import CallContext from './CallContext'
 
 export function cacheMiddleware(ctx) {
-  const {method, url, input, reget} = ctx
+  const {method, url, input, cache} = ctx
   if (method === 'GET') {
-    ctx.body = reget.caches[url]
+    ctx.status = 304
   } else {
-    reget.caches[url] = input
+    cache.set(url, input)
   }
 }
 
 
-export default class Reget extends EventEmitter {
-  constructor({caches, middlewares} = {}) {
-    super()
-    this.middlewares = middlewares
-    this.caches = caches || {}
-
-    // meta
-    this.cachedDates = {}
-    this.promises = {}
-    _.each(this.caches, (val, key) => {
-      this.cachedDates[key] = Date.now()
-    })
+export default class Reget {
+  constructor({cache, middlewares, promises} = {}) {
+    this.cache = cache || new CacheStore()
+    this.middlewares = middlewares || createMiddlewares()
+    this.promises = promises || {}
   }
 
   getUrl(pathname, query) {
@@ -35,34 +28,39 @@ export default class Reget extends EventEmitter {
     return url
   }
 
-  ping({pathname, query, ifModifiedSince}) {
+  ping() {
+    console.warn('reget.ping is depreacted, please use reget.get')
+  }
+
+  get(pathname, query, {ifModifiedSince} = {}) {
     const url = this.getUrl(pathname, query)
-    const cachedDate = this.cachedDates[url]
-    let cache = this.caches[url]
+    let value = this.cache.get(url)
     let promise
 
     // check and call load again, cachedDate is wait for push (reget.put and reget.post will also clean cachedDate to trigger load again)
     // console.log(pathname, cachedDate, ifModifiedSince)
-    if (!cachedDate || cachedDate < ifModifiedSince) {
+    const cachedTime = this.cache.getCachedTime(url)
+    if (!cachedTime || cachedTime < ifModifiedSince) {
       const option = {headers: {}}
-      if (cachedDate) {
-        option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedDate, ifModifiedSince)) : cachedDate
+      if (cachedTime) {
+        option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedTime, ifModifiedSince)) : cachedTime
       }
-      promise = this.load(url, option)
+      promise = this.reload(url, option)
       // use promise directly if load is sync
       if (promise.isFulfilled) {
-        cache = promise.value
+        value = promise.value
       }
     }
 
-    return {cache, promise}
-  }
-
-  get(pathname, query) {
-    return this.ping({pathname, query}).cache
+    return value
   }
 
   load(url, option) {
+    console.warn('reget.load is depreacted, please use reget.reload')
+    return this.reload(url, option)
+  }
+
+  reload(url, option) {
     const runningPromise = this.promises[url]
     if (runningPromise) return runningPromise
     // request and record the created promise
@@ -78,42 +76,32 @@ export default class Reget extends EventEmitter {
   }
 
   wait() {
-    return Promise.all(_.values(this.promises).concat(this._emitPromise))
+    return Promise.all(_.values(this.promises).concat(this.cache.wait()))
     .then(() => {
-      return _.isEmpty(this.promises) && !this._emitPromise ? true : this.wait()
+      return _.isEmpty(this.promises) && !this.hasPendingEvent() ? true : this.wait()
     })
   }
 
   request(ctxData) {
     const ctx = new CallContext(ctxData)
     ctx.reget = this
+    ctx.cache = this.cache
     return this.middlewares(ctx)
     .then(res => {
       const {url, method} = res
       let body = res && res.body
       if (method === 'GET') {
-        // if (data && data.$caches) {
-        //   // key-value pair caches
-        //   _.each(data.$caches, (subCache, subUrl) => {
-        //     this.caches[subUrl] = subCache
-        //     this.cachedDates[subUrl] = new Date()
-        //   })
-        //   _.each(data.$cacheTimestamps, (timestamp, subUrl) => {
-        //     this.cachedDates[subUrl] = timestamp
-        //   })
-        // } else
         if (res && res.status === 304) {
           // no change, cachedDates already set
-          body = this.caches[url]
+          body = this.cache.get(url)
         } else {
           // simple data cache
-          this.cache(url, body)
+          this.cache.set(url, body)
         }
         return body
       } else {
         // for PUT and POST, suppose the data for this url will be changed
-        this.invalidate(url)
-        this.emitChange()
+        this.cache.invalidate(url, true)
         return body
       }
     })
@@ -128,33 +116,30 @@ export default class Reget extends EventEmitter {
   }
 
   cache(url, body) {
-    this.caches[url] = body
-    this.cachedDates[url] = new Date()
-    this.emitChange()
+    console.warn('reget.cache is depreacted, please use reget.cache.set')
+    this.cache.set(url, body)
   }
 
   invalidate(urlPrefix) {
-    this.cachedDates = _.pickBy(this.cachedDates, (val, key) => !_.startsWith(key, urlPrefix))
+    console.warn('reget.invalidate is depreacted, please use reget.cache.invalidate')
+    this.cache.set(urlPrefix, true)
   }
 
-  createPinger(handler) {
-    return new Pinger(this, handler)
+  createPinger() {
+    console.error('reget.createPinger is depreacted. Please use AutoRunner')
+    //   // const existBefore =
+    //   // if (!existBefore) {
+    //   //   if (this._emitter.listeners(key, true)) {
+    //   //
+    //   //   }
+    //   // }
+    //   // if (!existBefore && existAfter) {
+    //   //
+    //   // }
+    // return new Pinger(this, handler)
   }
 
-  emitChange() {
-    // change event debounce for 100ms
-    // this._emitChange = _.debounce(() => this.emit('change'), 100)
-    if (this._emitPromise) return
-    this._emitPromise = new Promise(resolve => {
-      setTimeout(() => resolve(), 100)
-    }).then(() => {
-      delete this._emitPromise
-      this.emit('change')
-    })
-  }
-
-  onChange(listener) {
-    this.on('change', listener)
-    return () => this.removeListener('change', listener)
+  onChange() {
+    console.error('reget.onChange is depreacted')
   }
 }
