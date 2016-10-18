@@ -15,7 +15,7 @@ export default class AutoRunner extends Reget {
   // extends Reget
   get(pathname, query, option) {
     const url = this.getUrl(pathname, query)
-    this.cache.watch(url, this._onChange)
+    this.watch(url, this._onChange)
     return super.get(url, null, {ifModifiedSince: this.preferredDate, ...option})
   }
 
@@ -37,6 +37,6 @@ export default class AutoRunner extends Reget {
 
   stop() {
     this._isRunOnChange = false
-    this.cache.unwatch(this._onChange)
+    this.unwatch(this._onChange)
   }
 }

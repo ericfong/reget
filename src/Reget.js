@@ -75,10 +75,23 @@ export default class Reget {
     })
   }
 
+  watch(key, fn) {
+    const existBefore = this.cache.hasWatch(key)
+    this.cache.watch(key, fn)
+    if (!existBefore && this.cache.hasWatch(key)) {
+      this.request({method: 'WATCH', url: key})
+    }
+  }
+
+  unwatch(key, fn) {
+    const unwatchedKeys = this.cache.unwatch(key, fn)
+    _.each(unwatchedKeys, key => this.request({method: 'UNWATCH', url: key}))
+  }
+
   wait() {
     return Promise.all(_.values(this.promises).concat(this.cache.wait()))
     .then(() => {
-      return _.isEmpty(this.promises) && !this.hasPendingEvent() ? true : this.wait()
+      return _.isEmpty(this.promises) && !this.cache.hasPendingEvent() ? true : this.wait()
     })
   }
 
@@ -127,16 +140,6 @@ export default class Reget {
 
   createPinger() {
     console.error('reget.createPinger is depreacted. Please use AutoRunner')
-    //   // const existBefore =
-    //   // if (!existBefore) {
-    //   //   if (this._emitter.listeners(key, true)) {
-    //   //
-    //   //   }
-    //   // }
-    //   // if (!existBefore && existAfter) {
-    //   //
-    //   // }
-    // return new Pinger(this, handler)
   }
 
   onChange() {

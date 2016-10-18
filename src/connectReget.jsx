@@ -40,7 +40,7 @@ export function connectReget(getterFunc) {
         if (this.runner) this.runner.start()
       }
 
-      componentWillUnmount () {
+      componentWillUnmount() {
         if (this.runner) this.runner.stop()
       }
 

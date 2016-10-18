@@ -72,24 +72,31 @@ export default class CacheStore {
   }
 
   unwatch(key, fn) {
+    const unwatchedKeys = []
     if (typeof key === 'function') {
       // unwatchByWatch
       const _fn = key
       for (const key in this.watcherLists) {
         const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== _fn)
-        if (newWatchers.length === 0) delete this.watcherLists[key]
+        if (newWatchers.length === 0) {
+          delete this.watcherLists[key]
+          unwatchedKeys.push(key)
+        }
       }
-      return this
-    }
+    } else {
+      if (!this.watcherLists[key]) return this
+      if (!fn) {
+        delete this.watcherLists[key]
+        return this
+      }
 
-    if (!this.watcherLists[key]) return this
-    if (!fn) {
-      delete this.watcherLists[key]
-      return this
+      const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== fn)
+      if (newWatchers.length === 0) {
+        delete this.watcherLists[key]
+        unwatchedKeys.push(key)
+      }
     }
-
-    const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== fn)
-    if (newWatchers.length === 0) delete this.watcherLists[key]
+    return unwatchedKeys
   }
 
 
