@@ -9,7 +9,7 @@ export function cacheMiddleware(ctx) {
   const {method, url, input, cache} = ctx
   if (method === 'GET') {
     ctx.status = 304
-  } else {
+  } else if (method === 'PUT' || method === 'POST') {
     cache.set(url, input)
   }
 }
@@ -95,6 +95,12 @@ export default class Reget {
     })
   }
 
+
+  // use & request for middlewares
+  use(mw) {
+    this.middlewares.use(mw)
+  }
+
   request(ctxData) {
     const ctx = new CallContext(ctxData)
     ctx.reget = this
@@ -120,13 +126,15 @@ export default class Reget {
     })
   }
 
-  // write through cache functions
+
+  // HTTP interface that call request
   put(url, input, option) {
     return this.request({...option, method: 'PUT', url, input})
   }
   post(url, input, option) {
     return this.request({...option, method: 'POST', url, input})
   }
+
 
   cache(url, body) {
     console.warn('reget.cache is depreacted, please use reget.cache.set')
