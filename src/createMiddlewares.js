@@ -1,5 +1,4 @@
 import SyncPromise from './SyncPromise'
-import CallContext from './CallContext'
 
 
 function runMiddlewares(ctx, middlewares, i = 0) {
@@ -17,18 +16,14 @@ function runMiddlewares(ctx, middlewares, i = 0) {
   }
 
   return SyncPromise.resolve(result, error)
-  // always use one and original ctx for all middlewares
-  // .then(newCtx => newCtx || ctx)
 }
 
 
 export default function createMiddlewares(middlewares) {
   const middlewareArray = []
 
-  const runner = function(ctxData) {
-    const ctx = ctxData instanceof CallContext ? ctxData : new CallContext(ctxData)
+  const runner = function(ctx) {
     return runMiddlewares(ctx, middlewareArray)
-    // always return the original ctx
     .then(() => ctx)
   }
 

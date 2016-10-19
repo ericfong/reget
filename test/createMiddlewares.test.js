@@ -1,7 +1,8 @@
 import should from 'should'
 
 import createMiddlewares from '../src/createMiddlewares'
-import {route} from '../src'
+import {route, CallContext} from '../src'
+import {GET} from '../src/route'
 
 describe('createMiddlewares', function() {
   it('sync return', () => {
@@ -13,7 +14,7 @@ describe('createMiddlewares', function() {
     })
 
     const ctx = {inputs: {number: 1}}
-    const result = middlewares(ctx).then(ctx => ctx.body)
+    const result = middlewares(new CallContext(ctx)).then(ctx => ctx.body)
     should(result.isFulfilled).be.true()
     should(result.value).equal(2)
   })
@@ -29,7 +30,7 @@ describe('createMiddlewares', function() {
       })
     })
 
-    const result = await middlewares().then(ctx => ctx.body)
+    const result = await middlewares(new CallContext()).then(ctx => ctx.body)
     should(!!result.isFulfilled).be.false()
     should(result).equal('Http Body')
   })
@@ -37,7 +38,7 @@ describe('createMiddlewares', function() {
   it('path regexp', async () => {
     const middlewares = createMiddlewares()
 
-    middlewares.use(route('lesson', async (ctx, next) => {
+    middlewares.use(GET('lesson', async (ctx, next) => {
       await next()
       ctx.body = ctx.body + ' World'
     }))
@@ -46,15 +47,15 @@ describe('createMiddlewares', function() {
     })
 
     should((
-      await middlewares({
+      await middlewares(new CallContext({
         url: 'lesson?courseId=7bLXN46m&branchId=bD0n20Wn',
-      })
+      }))
     ).body).equal('Hello World')
 
     should((
-      await middlewares({
+      await middlewares(new CallContext({
         url: 'lesson/bD0n20Wn',
-      })
+      }))
     ).body).equal('Hello')
   })
 
@@ -63,9 +64,9 @@ describe('createMiddlewares', function() {
       ctx.body = ctx.input + 1
     })
     should((
-      await middlewares({
+      await middlewares(new CallContext({
         input: 1,
-      })
+      }))
     ).body).equal(2)
 
     const middlewares2 = createMiddlewares([
