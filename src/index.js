@@ -8,7 +8,7 @@ export CallContext from './CallContext'
 
 export createMiddlewares from './compose'
 export compose from './compose'
-export route from './route'
+export route, {GET, PUT, POST, WATCH, UNWATCH, ALL} from './route'
 
 export CacheStore from './CacheStore'
 

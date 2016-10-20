@@ -47,7 +47,9 @@ export default function(method, pathPattern, fn, opts) {
   throw new Error('Unknown pattern of arguments')
 }
 
-
+export function ALL(pathPattern, fn, opts) {
+  return route(null, pathPattern, fn, opts)
+}
 export function GET(pathPattern, fn, opts) {
   return route('GET', pathPattern, fn, opts)
 }
