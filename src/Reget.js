@@ -105,23 +105,20 @@ export default class Reget {
   request(ctxData) {
     if (!this.handler) {
       console.error('Please setup reget.handler to handle GET, PUT, POST, WATCH, UNWATCH calls')
-      return
+      return Promise.resolve()
     }
     const ctx = new CallContext(ctxData)
     ctx.reget = this
     ctx.cache = this.cache
     return this.handler(ctx)
-    .then(res => {
-      const {url, method} = res
-      let body = res && res.body
+    .then(() => {
+      const {url, method, status, body} = ctx
       if (method === 'GET') {
-        if (res && res.status === 304) {
+        if (status === 304) {
           // no change, cachedDates already set
-          body = this.cache.get(url)
-        } else {
-          // simple data cache
-          this.cache.set(url, body)
+          return this.cache.get(url)
         }
+        this.cache.set(url, body)
         return body
       } else {
         // for PUT and POST, suppose the data for this url will be changed
