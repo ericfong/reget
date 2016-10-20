@@ -1,11 +1,11 @@
 import Reget from './Reget'
 
 export default class AutoRunner extends Reget {
-  constructor(oriReget, handler, disableRunOnChange) {
+  constructor(oriReget, runHandler, disableRunOnChange) {
     super(oriReget)
 
     this._oriReget = oriReget
-    this.handler = handler
+    this.runHandler = runHandler
     this.preferredDate = new Date()
 
     this._isRunOnChange = !disableRunOnChange
@@ -27,7 +27,7 @@ export default class AutoRunner extends Reget {
   }
 
   run(props, changes) {
-    return this.handler(this, props, changes)
+    return this.runHandler(this, props, changes)
   }
 
   start() {

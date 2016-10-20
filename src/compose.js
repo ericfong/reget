@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import SyncPromise from './SyncPromise'
 
 
@@ -19,7 +20,7 @@ function runMiddlewares(ctx, middlewares, i = 0) {
 }
 
 
-export default function createMiddlewares(middlewares) {
+export default function compose() {
   const middlewareArray = []
 
   const runner = function(ctx) {
@@ -27,19 +28,19 @@ export default function createMiddlewares(middlewares) {
     .then(() => ctx)
   }
 
-  runner.use = function(fn) {
-    if (!fn) return this
-    if (Array.isArray(fn)) {
-      fn.forEach(f => middlewareArray.push(f))
-    } else {
-      middlewareArray.push(fn)
-    }
+  runner.use = function(...middlewareArrays) {
+    _.each(middlewareArrays, fn => {
+      if (!fn) return this
+      if (Array.isArray(fn)) {
+        fn.forEach(f => middlewareArray.push(f))
+      } else {
+        middlewareArray.push(fn)
+      }
+    })
     return this
   }
 
-  if (middlewares) {
-    runner.use(middlewares)
-  }
+  runner.use.apply(runner, arguments)
 
   return runner
 }

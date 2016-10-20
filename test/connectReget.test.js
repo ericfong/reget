@@ -3,7 +3,7 @@ import React from 'react'
 import './setup'
 import {mount, shallow} from 'enzyme'
 
-import {connectReget, RegetProvider, Reget, createMiddlewares} from '../src'
+import {connectReget, RegetProvider, Reget, compose} from '../src'
 
 describe('connectReget', function() {
   before(async () => {
@@ -22,21 +22,21 @@ describe('connectReget', function() {
       return <div>{props.username}{!props.username && <SignUp />}</div>
     })
 
-    const reget = new Reget()
-    const middlewares = reget.middlewares = createMiddlewares()
-    const watchingKeys = {}
-    middlewares.use(async ctx => {
-      if (ctx.method === 'WATCH') {
-        watchingKeys[ctx.url] = true
-      } else if (ctx.method === 'UNWATCH') {
-        delete watchingKeys[ctx.url]
-      }
-      ctx.body = await new Promise(resolve => {
-        setTimeout(() => {
-          resolve('Http Result')
-        }, 1)
-      })
+    const reget = new Reget({
+      handler: compose(async ctx => {
+        if (ctx.method === 'WATCH') {
+          watchingKeys[ctx.url] = true
+        } else if (ctx.method === 'UNWATCH') {
+          delete watchingKeys[ctx.url]
+        }
+        ctx.body = await new Promise(resolve => {
+          setTimeout(() => {
+            resolve('Http Result')
+          }, 1)
+        })
+      }),
     })
+    const watchingKeys = {}
 
     const wrapper = mount(
       <RegetProvider reget={reget}>

@@ -1,14 +1,11 @@
 import should from 'should'
 
-import createMiddlewares from '../src/createMiddlewares'
-import {route, CallContext} from '../src'
+import {CallContext, compose} from '../src'
 import {GET} from '../src/route'
 
-describe('createMiddlewares', function() {
+describe('compose middlewares', function() {
   it('sync return', () => {
-    const middlewares = createMiddlewares()
-
-    middlewares.use((ctx) => {
+    const middlewares = compose((ctx) => {
       ctx.body = ctx.inputs.number + 1
       return ctx
     })
@@ -20,9 +17,7 @@ describe('createMiddlewares', function() {
   })
 
   it('async return', async () => {
-    const middlewares = createMiddlewares()
-
-    middlewares.use(async (ctx) => {
+    const middlewares = compose(async (ctx) => {
       ctx.body = await new Promise(resolve => {
         setTimeout(() => {
           resolve('Http Body')
@@ -36,15 +31,15 @@ describe('createMiddlewares', function() {
   })
 
   it('path regexp', async () => {
-    const middlewares = createMiddlewares()
-
-    middlewares.use(GET('lesson', async (ctx, next) => {
-      await next()
-      ctx.body = ctx.body + ' World'
-    }))
-    middlewares.use(ctx => {
-      ctx.body = 'Hello'
-    })
+    const middlewares = compose([
+      GET('lesson', async (ctx, next) => {
+        await next()
+        ctx.body = ctx.body + ' World'
+      }),
+      ctx => {
+        ctx.body = 'Hello'
+      },
+    ])
 
     should((
       await middlewares(new CallContext({
@@ -60,7 +55,7 @@ describe('createMiddlewares', function() {
   })
 
   it('set middlewares during create', async () => {
-    const middlewares = createMiddlewares(ctx => {
+    const middlewares = compose(ctx => {
       ctx.body = ctx.input + 1
     })
     should((
@@ -69,7 +64,7 @@ describe('createMiddlewares', function() {
       }))
     ).body).equal(2)
 
-    const middlewares2 = createMiddlewares([
+    const middlewares2 = compose([
       async (ctx, next) => {
         await next()
         ctx.body += 1
@@ -82,8 +77,7 @@ describe('createMiddlewares', function() {
       })
     ).body).equal(3)
 
-    const middlewares3 = createMiddlewares()
-    middlewares3.use([
+    const middlewares3 = compose([
       async (ctx, next) => {
         await next()
         ctx.body += 1

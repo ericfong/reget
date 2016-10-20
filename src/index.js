@@ -6,7 +6,8 @@ export AutoRunner from './AutoRunner'
 export Reget, {cacheMiddleware} from './Reget'
 export CallContext from './CallContext'
 
-export createMiddlewares from './createMiddlewares'
+export createMiddlewares from './compose'
+export compose from './compose'
 export route from './route'
 
 export CacheStore from './CacheStore'

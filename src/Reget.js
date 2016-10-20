@@ -2,7 +2,6 @@ import _ from 'lodash'
 import stringify from 'querystring-stable-stringify'
 
 import CacheStore from './CacheStore'
-import createMiddlewares from './createMiddlewares'
 import CallContext from './CallContext'
 
 export function cacheMiddleware(ctx) {
@@ -16,10 +15,12 @@ export function cacheMiddleware(ctx) {
 
 
 export default class Reget {
-  constructor({cache, middlewares, promises} = {}) {
+  constructor({cache, handler, promises} = {}) {
     this.cache = cache || new CacheStore()
-    this.middlewares = middlewares || createMiddlewares()
     this.promises = promises || {}
+    if (handler) {
+      this.handler = handler
+    }
   }
 
   getUrl(pathname, query) {
@@ -28,18 +29,14 @@ export default class Reget {
     return url
   }
 
-  ping() {
-    console.warn('reget.ping is depreacted, please use reget.get')
-  }
-
   get(pathname, query, {ifModifiedSince} = {}) {
     const url = this.getUrl(pathname, query)
     let value = this.cache.get(url)
     let promise
 
     // check and call load again, cachedDate is wait for push (reget.put and reget.post will also clean cachedDate to trigger load again)
-    // console.log(pathname, cachedDate, ifModifiedSince)
     const cachedTime = this.cache.getCachedTime(url)
+    // console.log('>>>', pathname, !cachedTime || cachedTime < ifModifiedSince, cachedTime, ifModifiedSince)
     if (!cachedTime || cachedTime < ifModifiedSince) {
       const option = {headers: {}}
       if (cachedTime) {
@@ -55,10 +52,14 @@ export default class Reget {
     return value
   }
 
-  load(url, option) {
-    console.warn('reget.load is depreacted, please use reget.reload')
-    return this.reload(url, option)
+  invalidate(key, allSuffix) {
+    this.cache.invalidate(key, allSuffix)
   }
+
+  // load(url, option) {
+  //   console.warn('reget.load is depreacted, please use reget.reload')
+  //   return this.reload(url, option)
+  // }
 
   reload(url, option) {
     const runningPromise = this.promises[url]
@@ -97,15 +98,19 @@ export default class Reget {
 
 
   // use & request for middlewares
-  use(mw) {
-    this.middlewares.use(mw)
-  }
+  // use(mw) {
+  //   console.warn('reget.use is depreacted, please use reget.handler')
+  // }
 
   request(ctxData) {
+    if (!this.handler) {
+      console.error('Please setup reget.handler to handle GET, PUT, POST, WATCH, UNWATCH calls')
+      return
+    }
     const ctx = new CallContext(ctxData)
     ctx.reget = this
     ctx.cache = this.cache
-    return this.middlewares(ctx)
+    return this.handler(ctx)
     .then(res => {
       const {url, method} = res
       let body = res && res.body
@@ -133,24 +138,5 @@ export default class Reget {
   }
   post(url, input, option) {
     return this.request({...option, method: 'POST', url, input})
-  }
-
-
-  cache(url, body) {
-    console.warn('reget.cache is depreacted, please use reget.cache.set')
-    this.cache.set(url, body)
-  }
-
-  invalidate(urlPrefix) {
-    console.warn('reget.invalidate is depreacted, please use reget.cache.invalidate')
-    this.cache.set(urlPrefix, true)
-  }
-
-  createPinger() {
-    console.error('reget.createPinger is depreacted. Please use AutoRunner')
-  }
-
-  onChange() {
-    console.error('reget.onChange is depreacted')
   }
 }
