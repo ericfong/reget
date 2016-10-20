@@ -1,6 +1,6 @@
 {
   "name": "reget",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "React reactive cache for any async calls, http fetching, or memory store accesses",
   "main": "lib/index.js",
   "scripts": {
