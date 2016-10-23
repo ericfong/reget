@@ -1,8 +1,6 @@
 import should from 'should'
 
-import Reget, {cacheMiddleware} from '../src/Reget'
-import AutoRunner from '../src/AutoRunner'
-import {route, compose} from '../src'
+import {route, compose, Reget, AutoRunner, cacheMiddleware} from '../src'
 
 function sleep(time) {
   return new Promise(resolve => setTimeout(resolve, time))

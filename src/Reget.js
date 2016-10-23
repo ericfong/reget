@@ -4,15 +4,6 @@ import stringify from 'querystring-stable-stringify'
 import CacheStore from './CacheStore'
 import CallContext from './CallContext'
 
-export function cacheMiddleware(ctx) {
-  const {method, url, input, cache} = ctx
-  if (method === 'GET') {
-    ctx.status = 304
-  } else if (method === 'PUT' || method === 'POST') {
-    cache.set(url, input)
-  }
-}
-
 
 export default class Reget {
   constructor({cache, handler, promises} = {}) {

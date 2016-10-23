@@ -1,10 +1,11 @@
-
 export connectReget, {RegetProvider} from './connectReget'
 
 export AutoRunner from './AutoRunner'
 
-export Reget, {cacheMiddleware} from './Reget'
+export Reget from './Reget'
 export CallContext from './CallContext'
+
+export cacheMiddleware from './middlewares/cacheMiddleware'
 
 export createMiddlewares from './compose'
 export compose from './compose'
