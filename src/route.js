@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import pathToRegexp from 'path-to-regexp'
 
 import SyncPromise from './SyncPromise'
@@ -7,30 +8,32 @@ function decode(val) {
   if (val) return decodeURIComponent(val)
 }
 
-function matchMethod(ctx, method) {
-  if (!method) return true
-  if (ctx.method === method) return true
-  if (method === 'GET' && ctx.method === 'HEAD') return true
-  return false
-}
+function route(pathPattern, fn, opts) {
+  let methods = null
+  if (typeof fn === 'object') {
+    methods = _.mapKeys(fn, (v, k) => k.toUpperCase())
+  }
 
-
-function route(method, pathPattern, fn, opts) {
-  if (method) method = method.toUpperCase()
   const re = pathToRegexp(pathPattern, opts)
   return function(ctx, next) {
-    // method
-    if (!matchMethod(ctx, method)) return next()
+    let method
+
+    // match methods
+    if (methods) {
+      method = methods[ctx.method]
+      if (!method) return next()
+    } else {
+      method = fn
+    }
 
     // match path
     const m = re.exec(ctx.path)
-    // console.log('match', pathPattern, ctx, m)
     if (m) {
       const args = m.slice(1).map(decode)
       ctx.routePath = pathPattern
       args.unshift(ctx)
       args.push(next)
-      return SyncPromise.resolve(fn.apply(ctx, args))
+      return SyncPromise.resolve(method.apply(ctx, args))
     }
 
     // miss
@@ -40,28 +43,27 @@ function route(method, pathPattern, fn, opts) {
 
 export default function(method, pathPattern, fn, opts) {
   if (typeof fn === 'function') {
-    return route(method, pathPattern, fn, opts)
-  } else if (typeof pathPattern === 'function') {
-    return route(null, method, pathPattern, fn)
+    return route(pathPattern, {[method]: fn}, opts)
   }
-  throw new Error('Unknown pattern of arguments')
+  return route(method, pathPattern, fn, opts)
 }
 
 export function ALL(pathPattern, fn, opts) {
-  return route(null, pathPattern, fn, opts)
+  console.warn('route.ALL is deprecating')
+  return route(pathPattern, fn, opts)
 }
 export function GET(pathPattern, fn, opts) {
-  return route('GET', pathPattern, fn, opts)
+  return route(pathPattern, {GET: fn}, opts)
 }
 export function PUT(pathPattern, fn, opts) {
-  return route('PUT', pathPattern, fn, opts)
+  return route(pathPattern, {GET: fn}, opts)
 }
 export function POST(pathPattern, fn, opts) {
-  return route('POST', pathPattern, fn, opts)
+  return route(pathPattern, {POST: fn}, opts)
 }
 export function WATCH(pathPattern, fn, opts) {
-  return route('WATCH', pathPattern, fn, opts)
+  return route(pathPattern, {WATCH: fn}, opts)
 }
 export function UNWATCH(pathPattern, fn, opts) {
-  return route('UNWATCH', pathPattern, fn, opts)
+  return route(pathPattern, {UNWATCH: fn}, opts)
 }

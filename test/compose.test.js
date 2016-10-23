@@ -1,9 +1,34 @@
 import should from 'should'
 
-import {CallContext, compose} from '../src'
+import {CallContext, compose, route} from '../src'
 import {GET} from '../src/route'
 
 describe('compose middlewares', function() {
+  it('route methods', () => {
+    const middlewares = compose(
+      route('user/:id', {
+        GET(ctx, id) {
+          ctx.body = `get ${id}`
+        },
+        PUT(ctx, id) {
+          ctx.body = `put ${id}`
+        },
+      }),
+    )
+
+    should(
+      middlewares(new CallContext({
+        url: 'user/123',
+      })).value.body
+    ).equal('get 123')
+    should(
+      middlewares(new CallContext({
+        method: 'put',
+        url: 'user/123',
+      })).value.body
+    ).equal('put 123')
+  })
+
   it('sync return', () => {
     const middlewares = compose((ctx) => {
       ctx.body = ctx.inputs.number + 1

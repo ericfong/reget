@@ -17,6 +17,8 @@ export default class CallContext {
     if (ctxData) {
       Object.assign(this, ctxData)
 
+      this.method = this.method.toUpperCase()
+
       // get url and path
       const url = this.url || '/'
       const queryIndex = url.indexOf('?')
