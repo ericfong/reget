@@ -31,6 +31,7 @@ export default class Reget {
     if (!cachedTime || cachedTime < ifModifiedSince) {
       const option = {headers: {}}
       if (cachedTime) {
+        option.cachedTime = cachedTime
         option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedTime, ifModifiedSince)) : cachedTime
       }
       promise = this.reload(url, option)
