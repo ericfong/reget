@@ -19,8 +19,15 @@ export default class CallContext {
 
       this.method = this.method.toUpperCase()
 
+      // // must starting with / according to pathToRegexp, koa-mount and koa-route
+      // if (!this.url) {
+      //   this.url = '/'
+      // } else if (this.url[0] !== '/') {
+      //   this.url = `/${this.url}`
+      // }
+
       // get url and path
-      const url = this.url || '/'
+      const url = this.url
       const queryIndex = url.indexOf('?')
       this.path = queryIndex >= 0 ? url.substr(0, queryIndex) : url
 
