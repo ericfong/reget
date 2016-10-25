@@ -6,7 +6,7 @@
   "scripts": {
     "prepublish": "babel src --out-dir lib",
     "start": "babel src --out-dir lib --watch",
-    "test": "cross-env NODE_ENV=test DEBUG=reget mocha --opts test/mocha.opts"
+    "test": "cross-env NODE_ENV=test mocha --opts test/mocha.opts"
   },
   "dependencies": {
     "lodash": "^4.16.4",

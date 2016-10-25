@@ -1,6 +1,6 @@
 import should from 'should'
 
-import {route, compose, Reget, AutoRunner, cacheMiddleware} from '../src'
+import {compose, Reget, AutoRunner, cacheMiddleware} from '../src'
 
 function sleep(time) {
   return new Promise(resolve => setTimeout(resolve, time))
@@ -9,7 +9,10 @@ function sleep(time) {
 describe('Reget', function() {
   it('sync', async () => {
     const reget = new Reget({
-      handler: compose(route('memory/:key', cacheMiddleware)),
+      handler: compose({
+        mount: 'memory',
+        handler: cacheMiddleware,
+      }),
     })
 
     should(reget.get('memory/me')).be.undefined()
@@ -30,7 +33,7 @@ describe('Reget', function() {
             }, 1)
           })
         },
-        route('memory/:key', cacheMiddleware),
+        {mount: 'memory', handler: cacheMiddleware}
       ),
     })
 
@@ -42,15 +45,16 @@ describe('Reget', function() {
     const _localStorage = {}
     const reget = new Reget({
       handler: compose([
-        route('memory/:key', cacheMiddleware),
-        route('localStorage/:key', ctx => {
-          const {method, url, input} = ctx
-          if (method === 'GET') {
-            ctx.body = _localStorage[url]
-          } else {
-            _localStorage[url] = input + '_localStorage'
-          }
-        }),
+        {mount: 'memory', handler: cacheMiddleware},
+        {
+          route: 'localStorage/:key',
+          get(ctx, key) {
+            ctx.body = _localStorage[key]
+          },
+          put({input}, key) {
+            _localStorage[key] = input + '_localStorage'
+          },
+        },
       ]),
     })
 
@@ -60,6 +64,7 @@ describe('Reget', function() {
 
     should(reget.get('localStorage/foo')).be.undefined()
     reget.put('localStorage/foo', 'Data')
+    should(_localStorage).property('foo', 'Data_localStorage')
     should(reget.get('localStorage/foo')).be.equal('Data_localStorage')
   })
 

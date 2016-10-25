@@ -1,9 +1,10 @@
 
-export default function cacheMiddleware(ctx) {
-  const {method, url, input, cache} = ctx
-  if (method === 'GET') {
+export default {
+  route: '/:key',
+  get(ctx) {
     ctx.status = 304
-  } else if (method === 'PUT' || method === 'POST') {
+  },
+  put({cache, url, input}) {
     cache.set(url, input)
-  }
+  },
 }

@@ -4,7 +4,6 @@ import './setup'
 import {mount, shallow} from 'enzyme'
 
 import {connectReget, RegetProvider, Reget, compose} from '../src'
-import {GET} from '../src/route'
 
 async function asyncDbCall(data) {
   return new Promise(resolve => {
@@ -63,12 +62,18 @@ describe('connectReget', function() {
     // reget handler
     const reget = new Reget({
       handler: compose(
-        GET('blog/blog-1', async ctx => {
-          ctx.body = await asyncDbCall({_id: 'blog-1', userId: 'user-1'})
-        }),
-        GET('user/user-1', async ctx => {
-          ctx.body = await asyncDbCall({_id: 'user-1', name: 'John'})
-        }),
+        {
+          route: 'blog/blog-1',
+          async get(ctx) {
+            ctx.body = await asyncDbCall({_id: 'blog-1', userId: 'user-1'})
+          },
+        },
+        {
+          route: 'user/user-1',
+          async get(ctx) {
+            ctx.body = await asyncDbCall({_id: 'user-1', name: 'John'})
+          },
+        },
       ),
     })
 

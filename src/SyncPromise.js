@@ -29,5 +29,10 @@ SyncPromise.isThenable = function(p) {
 }
 
 SyncPromise.resolve = function(result, error) {
-  return SyncPromise.isThenable(result) ? result : new SyncPromise(result, error)
+  if (SyncPromise.isThenable(result)) {
+    if (error) Promise.reject(error)
+    return result
+  } else {
+    return new SyncPromise(result, error)
+  }
 }

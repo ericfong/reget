@@ -1,32 +1,38 @@
 import should from 'should'
 
-import {CallContext, compose, route} from '../src'
-import {GET} from '../src/route'
+import {CallContext, compose} from '../src'
+
+function runMiddleware(middleware, data) {
+  const ctx = new CallContext(data)
+  return middleware(ctx)
+  .then(() => ctx)
+}
 
 describe('compose middlewares', function() {
-  it('route methods', () => {
-    const middlewares = compose(
-      route('user/:id', {
+  it('route methods', async () => {
+    const middleware = compose(
+      {
+        route: 'user/:id',
         GET(ctx, id) {
           ctx.body = `get ${id}`
         },
         PUT(ctx, id) {
           ctx.body = `put ${id}`
         },
-      }),
+      }
     )
 
     should(
-      middlewares(new CallContext({
+      await runMiddleware(middleware, {
         url: 'user/123',
-      })).value.body
-    ).equal('get 123')
+      })
+    ).property('body', 'get 123')
     should(
-      middlewares(new CallContext({
+      await runMiddleware(middleware, {
         method: 'put',
         url: 'user/123',
-      })).value.body
-    ).equal('put 123')
+      })
+    ).property('body', 'put 123')
   })
 
   it('sync return', () => {
@@ -42,7 +48,7 @@ describe('compose middlewares', function() {
   })
 
   it('async return', async () => {
-    const middlewares = compose(async (ctx) => {
+    const mw = compose(async (ctx) => {
       ctx.body = await new Promise(resolve => {
         setTimeout(() => {
           resolve('Http Body')
@@ -50,69 +56,71 @@ describe('compose middlewares', function() {
       })
     })
 
-    const result = await middlewares(new CallContext()).then(ctx => ctx.body)
+    const result = runMiddleware(mw)
     should(!!result.isFulfilled).be.false()
-    should(result).equal('Http Body')
+    should(await result).property('body', 'Http Body')
   })
 
   it('path regexp', async () => {
-    const middlewares = compose([
-      GET('lesson', async (ctx, next) => {
-        await next()
-        ctx.body = ctx.body + ' World'
-      }),
+    const mw = compose([
+      {
+        route: 'lesson',
+        async get(ctx, next) {
+          await next()
+          ctx.body = ctx.body + ' World'
+        },
+      },
       ctx => {
         ctx.body = 'Hello'
       },
     ])
 
-    should((
-      await middlewares(new CallContext({
+    should(
+      await runMiddleware(mw, {
         url: 'lesson?courseId=7bLXN46m&branchId=bD0n20Wn',
-      }))
-    ).body).equal('Hello World')
-
-    should((
-      await middlewares(new CallContext({
+      })
+    ).property('body', 'Hello World')
+    should(
+      await runMiddleware(mw, {
         url: 'lesson/bD0n20Wn',
-      }))
-    ).body).equal('Hello')
+      })
+    ).property('body', 'Hello')
   })
 
   it('set middlewares during create', async () => {
-    const middlewares = compose(ctx => {
+    const mw = compose(ctx => {
       ctx.body = ctx.input + 1
     })
-    should((
-      await middlewares(new CallContext({
+    should(
+      await runMiddleware(mw, {
         input: 1,
-      }))
-    ).body).equal(2)
+      })
+    ).property('body', 2)
 
-    const middlewares2 = compose([
+    const mw2 = compose([
       async (ctx, next) => {
         await next()
         ctx.body += 1
       },
       ctx => ctx.body = ctx.input + 1,
     ])
-    should((
-      await middlewares2({
+    should(
+      await runMiddleware(mw2, {
         input: 1,
       })
-    ).body).equal(3)
+    ).property('body', 3)
 
-    const middlewares3 = compose([
+    const mw3 = compose([
       async (ctx, next) => {
         await next()
         ctx.body += 1
       },
       ctx => ctx.body = ctx.input + 1,
     ])
-    should((
-      await middlewares3({
+    should(
+      await runMiddleware(mw3, {
         input: 1,
       })
-    ).body).equal(3)
+    ).property('body', 3)
   })
 })
