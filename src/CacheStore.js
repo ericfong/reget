@@ -74,7 +74,7 @@ export default class CacheStore {
   unwatch(key, fn) {
     const unwatchedKeys = []
     if (typeof key === 'function') {
-      // unwatchByWatch
+      // first argument can be AutoRunner._onChange / watcher function
       const _fn = key
       for (const key in this.watcherLists) {
         const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== _fn)

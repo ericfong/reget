@@ -44,14 +44,13 @@ export default class Reget {
     return value
   }
 
-  invalidate(key, allSuffix) {
-    this.cache.invalidate(key, allSuffix)
+  // HTTP interface that call request
+  put(url, input, option) {
+    return this.request({...option, method: 'PUT', url, input})
   }
-
-  // load(url, option) {
-  //   console.warn('reget.load is depreacted, please use reget.reload')
-  //   return this.reload(url, option)
-  // }
+  post(url, input, option) {
+    return this.request({...option, method: 'POST', url, input})
+  }
 
   reload(url, option) {
     const runningPromise = this.promises[url]
@@ -67,32 +66,6 @@ export default class Reget {
       throw err
     })
   }
-
-  watch(key, fn) {
-    const existBefore = this.cache.hasWatch(key)
-    this.cache.watch(key, fn)
-    if (!existBefore && this.cache.hasWatch(key)) {
-      this.request({method: 'WATCH', url: key})
-    }
-  }
-
-  unwatch(key, fn) {
-    const unwatchedKeys = this.cache.unwatch(key, fn)
-    _.each(unwatchedKeys, key => this.request({method: 'UNWATCH', url: key}))
-  }
-
-  wait() {
-    return Promise.all(_.values(this.promises).concat(this.cache.wait()))
-    .then(() => {
-      return _.isEmpty(this.promises) && !this.cache.hasPendingEvent() ? true : this.wait()
-    })
-  }
-
-
-  // use & request for middlewares
-  // use(mw) {
-  //   console.warn('reget.use is depreacted, please use reget.handler')
-  // }
 
   request(ctxData) {
     if (!this.handler) {
@@ -120,12 +93,34 @@ export default class Reget {
     })
   }
 
-
-  // HTTP interface that call request
-  put(url, input, option) {
-    return this.request({...option, method: 'PUT', url, input})
+  wait() {
+    return Promise.all(_.values(this.promises).concat(this.cache.wait()))
+    .then(() => {
+      return _.isEmpty(this.promises) && !this.cache.hasPendingEvent() ? true : this.wait()
+    })
   }
-  post(url, input, option) {
-    return this.request({...option, method: 'POST', url, input})
+
+
+  // Cache related delegates
+  watch(key, fn) {
+    const existBefore = this.cache.hasWatch(key)
+    this.cache.watch(key, fn)
+    if (!existBefore) this.request({method: 'WATCH', url: key})
+  }
+  unwatch(key, fn) {
+    // first argument can be AutoRunner._onChange / watcher function
+    const unwatchedKeys = this.cache.unwatch(key, fn)
+    _.each(unwatchedKeys, key => this.request({method: 'UNWATCH', url: key}))
+  }
+  getCache() {
+    const cache = this.cache
+    return cache.get.apply(cache, arguments)
+  }
+  setCache() {
+    const cache = this.cache
+    return cache.set.apply(cache, arguments)
+  }
+  invalidate(key, allSuffix) {
+    this.cache.invalidate(key, allSuffix)
   }
 }
