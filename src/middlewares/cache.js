@@ -1,6 +1,6 @@
 
 export default {
-  route: '/:key',
+  route: '/:key+',
   get(ctx) {
     ctx.status = 304
   },

@@ -70,6 +70,12 @@ describe('compose middlewares', function() {
           ctx.body = ctx.body + ' World'
         },
       },
+      {
+        route: 'not-found/:key',
+        async get(ctx) {
+          ctx.status = 404
+        },
+      },
       ctx => {
         ctx.body = 'Hello'
       },
@@ -80,6 +86,13 @@ describe('compose middlewares', function() {
         path: 'lesson',
       })
     ).property('body', 'Hello World')
+    const notFoundResult = await runMiddleware(mw, {
+      path: 'not-found/123',
+    })
+    should(notFoundResult).properties({
+      status: 404,
+    })
+    should(notFoundResult.body).be.undefined()
     should(
       await runMiddleware(mw, {
         path: 'lesson/bD0n20Wn',
