@@ -6,7 +6,7 @@ import toMiddleware from './toMiddleware'
 const log = makeDebug('reget')
 
 
-export default function mount({mount, handler}) {
+export default function mount(mount, handler) {
   const prefix = mount
   const mw = toMiddleware(handler)
   if (!prefix || prefix === '/') {
@@ -31,7 +31,7 @@ export default function mount({mount, handler}) {
     return newPath
   }
 
-  return function(ctx, upstream) {
+  function mounting(ctx, upstream) {
     const prev = ctx.path
     const newPath = match(prev)
     // log('prefix %s %s -> %s', prefix, newPath)
@@ -50,4 +50,7 @@ export default function mount({mount, handler}) {
       ctx.path = prev
     })
   }
+  mounting.mount = mount
+  mounting.handler = handler
+  return mounting
 }

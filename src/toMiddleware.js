@@ -13,7 +13,7 @@ export default function toMiddleware(fn) {
     if (Array.isArray(fn)) {
       return compose(fn)
     } else if (fn.mount) {
-      return mount(fn)
+      return mount(fn.mount, fn.handler)
     } else if (fn.route) {
       return route(fn)
     }

@@ -22,32 +22,21 @@ function runMiddlewares(ctx, middlewares, i = 0) {
 }
 
 
-export default function compose(/* arguments */) {
-  const middlewareArray = []
+export default function compose(...middlewareArrays) {
+  const middlewares = []
+  _.each(middlewareArrays, fn => {
+    // if (!fn) return this
+    if (Array.isArray(fn)) {
+      fn.forEach(f => middlewares.push(toMiddleware(f)))
+    } else {
+      middlewares.push(toMiddleware(fn))
+    }
+  })
 
-  const runner = function(ctx, next) {
-    return runMiddlewares(ctx, middlewareArray)
+  function composing(ctx, next) {
+    return runMiddlewares(ctx, middlewares)
     .then(next)
   }
-
-  // const runner = function(ctx) {
-  //   return runMiddlewares(ctx, middlewareArray)
-  //   .then(() => ctx)
-  // }
-
-  runner.use = function(...middlewareArrays) {
-    _.each(middlewareArrays, fn => {
-      // if (!fn) return this
-      if (Array.isArray(fn)) {
-        fn.forEach(f => middlewareArray.push(toMiddleware(f)))
-      } else {
-        middlewareArray.push(toMiddleware(fn))
-      }
-    })
-    return this
-  }
-
-  runner.use.apply(runner, arguments)
-
-  return runner
+  composing.middlewares = middlewares
+  return composing
 }

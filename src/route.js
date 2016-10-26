@@ -11,7 +11,8 @@ function decode(val) {
   if (val) return decodeURIComponent(val)
 }
 
-export default function route({route, routeOption, ...rest}) {
+export default function route(conf) {
+  const {route, routeOption, ...rest} = conf
   // use falcor similar param spec
   // init re
   const re = (!route || route === '/') ? null : pathToRegexp(route, routeOption)
@@ -20,7 +21,7 @@ export default function route({route, routeOption, ...rest}) {
   log(`route ${route} re=${re}`)
 
   // koa-route like
-  return function(ctx, next) {
+  function routing(ctx, next) {
     // match
     const downstream = methods[ctx.method]
     // log(`routeByObj downstream=${downstream}`)
@@ -40,4 +41,8 @@ export default function route({route, routeOption, ...rest}) {
     // miss
     return next()
   }
+  routing.route = route
+  routing.routeOption = routeOption
+  Object.assign(routing, methods)
+  return routing
 }
