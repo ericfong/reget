@@ -7,10 +7,16 @@ export default function() {
       ctx.body = Cookie.get(key)
     },
     put(ctx, key) {
-      if (ctx.input === '') {
+      const {input, expires, domain, path, secure} = ctx
+      if (input === '') {
         Cookie.remove(key)
       } else {
-        Cookie.set(key, ctx.input, ctx)
+        ctx.body = Cookie.set(key, input, {
+          expires,
+          domain,
+          path,
+          secure,
+        })
       }
     },
   }
