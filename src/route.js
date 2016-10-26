@@ -23,7 +23,7 @@ export default function route(conf) {
   // koa-route like
   function routing(ctx, next) {
     // match
-    const downstream = methods[ctx.method]
+    const downstream = methods[ctx.method || 'GET']
     // log(`routeByObj downstream=${downstream}`)
     if (!downstream) return next()
 

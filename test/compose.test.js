@@ -1,9 +1,9 @@
 import should from 'should'
 
-import {CallContext, compose} from '../src'
+import {compose} from '../src'
 
 function runMiddleware(middleware, data) {
-  const ctx = new CallContext(data)
+  const ctx = data || {}
   return middleware(ctx)
   .then(() => ctx)
 }
@@ -24,13 +24,13 @@ describe('compose middlewares', function() {
 
     should(
       await runMiddleware(middleware, {
-        url: 'user/123',
+        path: 'user/123',
       })
     ).property('body', 'get 123')
     should(
       await runMiddleware(middleware, {
-        method: 'put',
-        url: 'user/123',
+        method: 'PUT',
+        path: 'user/123',
       })
     ).property('body', 'put 123')
   })
@@ -42,7 +42,7 @@ describe('compose middlewares', function() {
     })
 
     const ctx = {inputs: {number: 1}}
-    const result = middlewares(new CallContext(ctx)).then(ctx => ctx.body)
+    const result = middlewares(ctx).then(ctx => ctx.body)
     should(result.isFulfilled).be.true()
     should(result.value).equal(2)
   })
@@ -77,12 +77,12 @@ describe('compose middlewares', function() {
 
     should(
       await runMiddleware(mw, {
-        url: 'lesson?courseId=7bLXN46m&branchId=bD0n20Wn',
+        path: 'lesson',
       })
     ).property('body', 'Hello World')
     should(
       await runMiddleware(mw, {
-        url: 'lesson/bD0n20Wn',
+        path: 'lesson/bD0n20Wn',
       })
     ).property('body', 'Hello')
   })
