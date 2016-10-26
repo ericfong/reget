@@ -21,6 +21,7 @@ export default class AutoRunner extends Reget {
 
   // for cache.watch, has to be bind to this AutoRunner
   _onChange = (changes) => {
+    // console.log('_onChange', this._isRunOnChange, changes)
     if (this._isRunOnChange) {
       this.run(null, changes)
     }

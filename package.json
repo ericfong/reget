@@ -6,7 +6,7 @@
   "scripts": {
     "prepublish": "babel src --out-dir lib",
     "start": "babel src --out-dir lib --watch",
-    "test": "cross-env NODE_ENV=test mocha --opts test/mocha.opts"
+    "test": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 mocha --opts test/mocha.opts"
   },
   "dependencies": {
     "lodash": "^4.16.4",
@@ -36,6 +36,7 @@
     "react": "^15.3.1",
     "react-addons-test-utils": "^15.3.2",
     "react-dom": "^15.3.2",
+    "sinon": "^1.17.6",
     "should": "^11.1.1"
   },
   "repository": {

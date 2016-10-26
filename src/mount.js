@@ -3,7 +3,7 @@ import makeDebug from 'debug'
 import SyncPromise from './SyncPromise'
 import toMiddleware from './toMiddleware'
 
-const log = makeDebug('reget')
+const log = makeDebug('reget:mount')
 
 
 export default function mount(mount, handler) {

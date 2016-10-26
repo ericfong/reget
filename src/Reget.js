@@ -94,9 +94,12 @@ export default class Reget {
   }
 
   wait() {
+    // console.log('wait', this.promises, this.cache_changePromise)
     return Promise.all(_.values(this.promises).concat(this.cache.wait()))
     .then(() => {
-      return _.isEmpty(this.promises) && !this.cache.hasPendingEvent() ? true : this.wait()
+      const isDone = _.isEmpty(this.promises) && !this.cache.hasPendingEvent()
+      // console.log('wait done?', isDone, this.promises, _.isEmpty(this.promises), this.cache._changePromise, !this.cache.hasPendingEvent())
+      return isDone ? true : this.wait()
     })
   }
 

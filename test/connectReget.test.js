@@ -1,13 +1,17 @@
 import should from 'should'
 import React from 'react'
 import './setup'
-import {mount, shallow} from 'enzyme'
+import {mount, render} from 'enzyme'
+import sinon from 'sinon'
 
 import {connectReget, RegetProvider, Reget, compose} from '../src'
 
 async function asyncDbCall(data) {
   return new Promise(resolve => {
-    setTimeout(() => resolve(data), 1)
+    setTimeout(() => {
+      // console.log('asyncDbCall done', data)
+      resolve(data)
+    }, 1)
   })
 }
 
@@ -58,7 +62,7 @@ describe('connectReget', function() {
     should(watchingKeys).deepEqual({ username: true })
   })
 
-  it('server rendering', async () => {
+  it.skip('server rendering', async () => {
     // reget handler
     const reget = new Reget({
       handler: compose(
@@ -89,11 +93,17 @@ describe('connectReget', function() {
       return blog ? {blog} : null
     })(props => <span>{props.blog._id} by <User userId={props.blog.userId} /></span>)
 
+    sinon.spy(User.prototype, 'componentDidMount')
+
     // server side render
-    const wrapper = mount(<RegetProvider reget={reget}><Blog blogId="blog-1" /></RegetProvider>)
-    should(wrapper.html()).equal(null)
+    const wrapper = render(<RegetProvider reget={reget}><span>Blog: <Blog blogId="blog-1" /></span></RegetProvider>)
+    should(wrapper.html()).equal('<span>Blog: </span>')
     await reget.wait()
-    should(wrapper.text()).be.exactly('blog-1 by John')
+    should(wrapper.html()).be.exactly('<span>Blog: blog-1 by John</span>')
+
+    // no componentDidMount called
+    should(User.prototype.componentDidMount.callCount).equal(0)
+    User.prototype.componentDidMount.restore()
 
     // transfer data to client
     const json = JSON.stringify(reget.cache.get())

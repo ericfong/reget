@@ -4,7 +4,7 @@ import pathToRegexp from 'path-to-regexp'
 
 import SyncPromise from './SyncPromise'
 
-const log = makeDebug('reget')
+const log = makeDebug('reget:route')
 
 
 function decode(val) {

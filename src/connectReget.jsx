@@ -54,7 +54,10 @@ export function connectReget(getterFunc) {
       }
 
       render() {
-        if (this._renderElement !== undefined) return this._renderElement
+        if (this._renderElement !== undefined) {
+          // console.log('connectReget return _renderElement', this._renderElement)
+          return this._renderElement
+        }
         const reget = this.runner || this.context.reget
         return <WrappedComponent {...this.props} {...this.state} reget={reget}  />
       }
