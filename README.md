@@ -64,8 +64,20 @@ const reget = new Reget({
 ```
 
 
+## Comparison
+
+Compare to Flux/Redux
+- Built-in support for async, http, promise call
+- Designed for big state tree. Cached state will be garbage collected
+- No need to define constants (you can define url generate functions)
+
+Compare to Relay/Falcor
+- Can call any http endpoint (Restful or php page or even image)
+- Flexible code your middleware, data conversion and normalization in js side
+
 
 ## Server Rendering
+__Server Rendering will be comming soon__
 ```js
 // server side first render
 ReactDOMServer.renderToString(<RegetProvider reget={reget}><App /></RegetProvider>)
@@ -74,7 +86,7 @@ await reget.wait()
 var outputHtml = ReactDOMServer.renderToString(<RegetProvider reget={reget}><App /></RegetProvider>)
 
 // transfer data to client
-const json = JSON.stringify(reget.cache.get())
+const json = JSON.stringify(reget.getCache())
 // -------
 const isoData = JSON.parse(json)
 
@@ -82,7 +94,7 @@ const isoData = JSON.parse(json)
 const browserReget = new Reget({
   // handler()
 })
-browserReget.cache.set(isoData)
+browserReget.setCache(isoData)
 ReactDOM.render(<RegetProvider reget={browserReget}><App /></RegetProvider>, dom)
 
 ```
@@ -93,14 +105,13 @@ You can use [iso](https://www.npmjs.com/package/iso) to ship data to browser
 ## Use Reget alone
 Reget can be a
 ```js
-import {Reget, compose, cacheMiddleware, route} from 'reget'
+import {Reget, compose, mount, cacheMiddleware} from 'reget'
 
 const reget = new Reget({
-  handler: compose(),
+  handler: compose(
+    mount('memory', cacheMiddleware)
+  ),
 })
-reget.middlewares = createMiddlewares(
-  route('memory/:key*', cacheMiddleware)
-)
 
 reget.put('memory/foo', 'bar')
 reget.get('memory/foo') === 'bar'
@@ -153,6 +164,8 @@ set: function() {} // set header
 - reload(url, option)  // http get (Async/Promise)
 - request(option)  // http request (Async/Promise)
 - wait()  // wait for all pending requests and events
+- getCache()
+- setCache()
 - invalidate(key, allSuffix)
 - watch(key, func)
 - unwatch(key, func)
@@ -162,23 +175,26 @@ set: function() {} // set header
 ## Middlewares
 koa like middlewares system. Please refer to [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) for path pattern.
 ```js
-import {compose, route, GET, PUT, POST, WATCH, UNWATCH, ALL} from 'reget'
+import {compose} from 'reget'
 
 const handler = compose(
-  GET('foo', async (ctx, next) => {
-    await next()
-    ctx.body = ctx.body + ' World'
-  }),
-  PUT('foo', async (ctx, next) => {
-    DB.save(ctx.input)
-    ctx.status = 200
-  }),
-  GET('.*', ctx => {
+  {
+    route: 'foo',
+    async get(ctx, next) {
+      await next()
+      ctx.body = ctx.body + ' World'
+    },
+    async put(ctx, next) {
+      DB.save(ctx.input)
+      ctx.status = 200
+    },
+  },
+  ctx => {
     ctx.body = 'Hello'
-  }))
+  },
 )
 
-const ctx = {url: 'foo'}
+const ctx = {path: 'foo'}
 await handler(ctx)
 // ctx.body === 'Hello World'
 ```
@@ -188,8 +204,14 @@ await handler(ctx)
 __compose(...middlewares)__
 create a function that accept a context argument and pass down to all middlewares
 
-__route(method, pathToRegExp, middleware, optionsForRegExp)__
-like koa-route, route middleware based on ctx.url. Path pattern use [path-to-regexp](https://www.npmjs.com/package/path-to-regexp)
+middlewares can be one of
+- function(ctx, next){}
+- array of function(ctx, next){}
+- object: {route: 'pathPattern', get(){}, put(){}, post(){}, watch(){}, unwatch(){}}
+- object: {mount: 'prefix', handler: anotherMiddleware}
+- mount('prefix', anotherMiddleware)
+
+like koa-route, path pattern use [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) to build regexp
 
 
 
