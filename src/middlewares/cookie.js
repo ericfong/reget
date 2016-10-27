@@ -1,6 +1,6 @@
 import Cookie from 'js-cookie'
 
-export default function() {
+export default function(cookieConf) {
   return {
     route: '/:key+',
     get(ctx, key) {
@@ -12,6 +12,7 @@ export default function() {
         Cookie.remove(key)
       } else {
         ctx.body = Cookie.set(key, input, {
+          ...cookieConf,
           expires,
           domain,
           path,
