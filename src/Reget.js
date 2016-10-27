@@ -20,16 +20,17 @@ export default class Reget {
     return url
   }
 
-  get(pathname, query, {ifModifiedSince} = {}) {
+  get(pathname, query, option = {}) {
     const url = this.getUrl(pathname, query)
     let value = this.cache.get(url)
     let promise
 
     // check and call load again, cachedDate is wait for push (reget.put and reget.post will also clean cachedDate to trigger load again)
     const cachedTime = this.cache.getCachedTime(url)
-    // console.log('>>>', pathname, !cachedTime || cachedTime < ifModifiedSince, cachedTime, ifModifiedSince)
-    if (!cachedTime || cachedTime < ifModifiedSince) {
-      const option = {headers: {}}
+    const {ifModifiedSince} = option
+    // console.log('>>>', pathname, cachedTime, this.isServerPreloading, ifModifiedSince)
+    if (!cachedTime || (!this.isServerPreloading && cachedTime < ifModifiedSince)) {
+      if (!option.headers) option.headers = {}
       if (cachedTime) {
         option.cachedTime = cachedTime
         option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedTime, ifModifiedSince)) : cachedTime
@@ -57,6 +58,9 @@ export default class Reget {
     if (runningPromise) return runningPromise
     // request and record the created promise
     const createdPromise = this.promises[url] = this.request({...option, method: 'GET', url})
+    if (option.serverPreload) {
+      createdPromise.serverPreload = option.serverPreload
+    }
     return createdPromise
     .then(result => {
       delete this.promises[url]
@@ -91,6 +95,23 @@ export default class Reget {
         return body
       }
     })
+  }
+
+  serverRender(renderCallback) {
+    this.isServerPreloading = true
+    const output = renderCallback(this)
+
+    // NOTE will not trigger onChange, should not create new Promise, no need to recursive here
+    const serverPromises = _.filter(this.promises, {serverPreload: true})
+    // recursive promise call
+    // console.log('waitForServerRender', this.isServerPreloading, serverPromises.length)
+    if (serverPromises.length > 0) {
+      return Promise.all(serverPromises)
+      .then(() => this.serverRender(renderCallback))
+    }
+
+    this.isServerPreloading = false
+    return output
   }
 
   wait() {

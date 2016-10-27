@@ -62,19 +62,23 @@ describe('connectReget', function() {
     should(watchingKeys).deepEqual({ username: true })
   })
 
-  it.skip('server rendering', async () => {
+  it('server rendering', async () => {
+    let getBlogCount = 0
+    let getUserCount = 0
     // reget handler
     const reget = new Reget({
       handler: compose(
         {
           route: 'blog/blog-1',
           async get(ctx) {
+            getBlogCount ++
             ctx.body = await asyncDbCall({_id: 'blog-1', userId: 'user-1'})
           },
         },
         {
           route: 'user/user-1',
           async get(ctx) {
+            getUserCount ++
             ctx.body = await asyncDbCall({_id: 'user-1', name: 'John'})
           },
         },
@@ -83,25 +87,27 @@ describe('connectReget', function() {
 
     // react components
     const User = connectReget(props => {
-      const user = props.reget.get(`user/${props.userId}`)
+      const user = props.reget.get(`user/${props.userId}`, null, {serverPreload: true})
       return user ? {user} : null
     })(props => {
       return <div>{props.user.name}</div>
     })
     const Blog = connectReget(props => {
-      const blog = props.reget.get(`blog/${props.blogId}`)
+      const blog = props.reget.get(`blog/${props.blogId}`, null, {serverPreload: true})
       return blog ? {blog} : null
     })(props => <span>{props.blog._id} by <User userId={props.blog.userId} /></span>)
 
     sinon.spy(User.prototype, 'componentDidMount')
 
     // server side render
-    const wrapper = render(<RegetProvider reget={reget}><span>Blog: <Blog blogId="blog-1" /></span></RegetProvider>)
-    should(wrapper.html()).equal('<span>Blog: </span>')
-    await reget.wait()
-    should(wrapper.html()).be.exactly('<span>Blog: blog-1 by John</span>')
+    const wrapper = await reget.serverRender(reget =>
+      render(<RegetProvider reget={reget}><span>Blog: <Blog blogId="blog-1" /></span></RegetProvider>)
+    )
+    should(wrapper.html()).be.exactly('<span>Blog: <span>blog-1 by <div>John</div></span></span>')
 
     // no componentDidMount called
+    should(getBlogCount).equal(1)
+    should(getUserCount).equal(1)
     should(User.prototype.componentDidMount.callCount).equal(0)
     User.prototype.componentDidMount.restore()
 

@@ -27,7 +27,7 @@ export function connectReget(getterFunc) {
               this.setState(newState)
             }
           }
-        }, true)
+        }, {disableOnChange: true})
       }
 
       componentWillReceiveProps(nextProps) {
