@@ -22,27 +22,34 @@ export default class Reget {
 
   get(pathname, query, option = {}) {
     const url = this.getUrl(pathname, query)
-    let value = this.cache.get(url)
-    let promise
 
-    // check and call load again, cachedDate is wait for push (reget.put and reget.post will also clean cachedDate to trigger load again)
     const cachedTime = this.cache.getCachedTime(url)
     const {ifModifiedSince} = option
-    // console.log('>>>', pathname, cachedTime, this.isServerPreloading, ifModifiedSince)
-    if (!cachedTime || (!this.isServerPreloading && cachedTime < ifModifiedSince)) {
+    if (this._shouldReload(option, cachedTime)) {
       if (!option.headers) option.headers = {}
       if (cachedTime) {
         option.cachedTime = cachedTime
         option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedTime, ifModifiedSince)) : cachedTime
       }
-      promise = this.reload(url, option)
+      const promise = this.reload(url, option)
       // use promise directly if load is sync
       if (promise.isFulfilled) {
-        value = promise.value
+        return promise.value
       }
     }
 
-    return value
+    return this.cache.get(url)
+  }
+
+  _shouldReload(option, cachedTime) {
+    if (this.isServerPreloading) {
+      // when isServerPreloading, only load resource that is specified and once
+      return option.serverPreload && !cachedTime
+    }
+
+    // check and call load again (reget.put and reget.post will also clean cachedTime and trigger load again)
+    // console.log('>>>', url, cachedTime, ifModifiedSince)
+    return !cachedTime || cachedTime < option.ifModifiedSince
   }
 
   // HTTP interface that call request
@@ -53,7 +60,7 @@ export default class Reget {
     return this.request({...option, method: 'POST', url, input})
   }
 
-  reload(url, option) {
+  reload(url, option = {}) {
     const runningPromise = this.promises[url]
     if (runningPromise) return runningPromise
     // request and record the created promise

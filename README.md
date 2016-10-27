@@ -1,14 +1,6 @@
-# reget
+# Reget ![https://img.shields.io/npm/v/reget.svg](https://img.shields.io/npm/v/reget.svg?style=flat-square) [![state](https://img.shields.io/badge/state-rc-green.svg?style=flat-square)]() [![npm](https://img.shields.io/npm/dt/reget.svg?maxAge=2592000&style=flat-square)]() [![npm](https://img.shields.io/npm/l/reget.svg?style=flat-square)]()
 
-React reactive cache for any async calls, http fetching, or memory store accesses.
-
-[![state](https://img.shields.io/badge/state-rc-green.svg)]()
-
-[![npm](https://img.shields.io/npm/dt/reget.svg?maxAge=2592000?style=flat-square)]()
-[![npm](https://img.shields.io/npm/v/reget.svg)]()
-[![npm](https://img.shields.io/npm/l/reget.svg)]()
-
-[![NPM](https://nodei.co/npm-dl/reget.png?months=1)](https://nodei.co/npm/reget/)
+> React reactive cache for any async calls, http fetching, or memory store accesses.
 
 
 __How It works?__
