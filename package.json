@@ -3,8 +3,8 @@
   "version": "0.9.4",
   "description": "React reactive cache for any async calls, http fetching, or memory store accesses",
   "main": "./lib/index.js",
-  "module": "./src/index.js",
-  "jsnext:main": "./src/index.js",
+  "module": "./lib/index.js",
+  "jsnext:main": "./lib/index.js",
   "directories": {
     "lib": "./lib"
   },
