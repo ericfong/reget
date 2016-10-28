@@ -150,34 +150,36 @@ set: function() {} // set header
 
 
 ## CacheStore class methods
-- get(key)  // sync get cache. If !key, entire store will be returned
-- set(key, value)  // sync set cache, trigger watchers to re-run in next tick. If key is object, key&value will be import to this cache store.
-- invalidate(key, allSuffix)  // invalidate cache
-- watch(key, func)  // register a watcher for change on key
-- unwatch(key, func)  // unregister a watcher for change on key
-- hasWatch(key)
-- getPendingPromise()  // get pending change promise (or null), so you can wait for
-- prune()  // gc this cache store
-
+```js
+get(key)  // sync get cache. If !key, entire store will be returned
+set(key, value)  // sync set cache, trigger watchers to re-run in next tick. If key is object, key&value will be import to this cache store.
+invalidate(key, allSuffix)  // invalidate cache
+watch(key, func)  // register a watcher for change on key
+unwatch(key, func)  // unregister a watcher for change on key
+hasWatch(key)
+getPendingPromise()  // get pending change promise (or null), so you can wait for
+prune()  // gc this cache store
+```
 
 
 ## Reget class
-- cache  // this instance's CacheStore
-- handler  // handler function for request (GET, PUT, POST), can be created by ```compose``` module
-- get(pathname, query, option)  // http get (Sync)
-- put(url, input, option)  // http put (Async/Promise)
-- post(url, input, option)  // http post (Async/Promise)
-- reload(url, option)  // http get (Async/Promise)
-- request(option)  // http request (Async/Promise)
-- serverRender()
-- getLoadingPromise() // get promise for all loading calls (or null if any)
-- wait()  // wait for all pending requests and events
-- getCache()
-- setCache()
-- invalidate(key, allSuffix)
-- watch(key, func)
-- unwatch(key, func)
-
+```js
+cache  // this instance's CacheStore
+handler()  // assigned handler function for request (GET, PUT, POST), can be created by ```compose``` module
+get(pathname, query, option)  // http get (Sync)
+put(url, input, option)  // http put (Async/Promise)
+post(url, input, option)  // http post (Async/Promise)
+reload(url, option)  // http get (Async/Promise)
+request(option)  // http request (Async/Promise)
+serverRender()
+getLoadingPromise(key) // get promise for all loading calls or one cache, null when promise not found
+wait()  // wait for all pending requests and events
+getCache()
+setCache()
+invalidate(key, allSuffix)
+watch(key, func)
+unwatch(key, func)
+```
 
 
 ## Middlewares

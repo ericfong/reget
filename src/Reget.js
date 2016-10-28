@@ -118,7 +118,11 @@ export default class Reget {
     return output
   }
 
-  getLoadingPromise() {
+  getLoadingPromise(key) {
+    if (key) {
+      return this.promises[key]
+    }
+
     const loadingPromises = _.values(this.promises)
 
     // NOTE will not trigger onChange in server preload, should not consider cache.getPendingPromise()
