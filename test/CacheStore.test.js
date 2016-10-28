@@ -39,13 +39,13 @@ describe('CacheStore', function() {
     cacheStore.set('foo', 'hi')
     cacheStore.set('foo', 'hihi')
     cacheStore.set('foo?bar', 'bye')
-    await cacheStore.wait()
+    await cacheStore.getPendingPromise()
     should(handleCount).equal(1)
     should(Object.keys(lastChanges)).deepEqual(['foo', 'foo?bar'])
 
     // invalidate and event
     cacheStore.invalidate('foo')
-    await cacheStore.wait()
+    await cacheStore.getPendingPromise()
     should(_.size(cacheStore.store)).equal(2)
     should(_.size(cacheStore.cachedTimes)).equal(1)
     should(handleCount).equal(2)

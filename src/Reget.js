@@ -108,27 +108,35 @@ export default class Reget {
     this.isServerPreloading = true
     const output = renderCallback(this)
 
-    // NOTE will not trigger onChange, should not create new Promise, no need to recursive here
-    const serverPromises = _.filter(this.promises, {serverPreload: true})
-    // recursive promise call
-    // console.log('waitForServerRender', this.isServerPreloading, serverPromises.length)
-    if (serverPromises.length > 0) {
-      return Promise.all(serverPromises)
-      .then(() => this.serverRender(renderCallback))
+    // recursive renderCallback & promise.then (instead of recursive this.wait())
+    const promise = this.getLoadingPromise()
+    if (promise) {
+      return promise.then(() => this.serverRender(renderCallback))
     }
 
     this.isServerPreloading = false
     return output
   }
 
+  getLoadingPromise() {
+    const loadingPromises = _.values(this.promises)
+
+    // NOTE will not trigger onChange in server preload, should not consider cache.getPendingPromise()
+    if (!this.isServerPreloading) {
+      const cachePromise = this.cache.getPendingPromise()
+      if (cachePromise) {
+        loadingPromises.push(cachePromise)
+      }
+    }
+
+    return loadingPromises.length > 0 ? Promise.all(loadingPromises) : null
+  }
+
   wait() {
-    // console.log('wait', this.promises, this.cache_changePromise)
-    return Promise.all(_.values(this.promises).concat(this.cache.wait()))
-    .then(() => {
-      const isDone = _.isEmpty(this.promises) && !this.cache.hasPendingEvent()
-      // console.log('wait done?', isDone, this.promises, _.isEmpty(this.promises), this.cache._changePromise, !this.cache.hasPendingEvent())
-      return isDone ? true : this.wait()
-    })
+    const promise = this.getLoadingPromise()
+    if (promise) {
+      return promise.then(() => this.wait())
+    }
   }
 
 

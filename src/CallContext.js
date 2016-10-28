@@ -11,7 +11,7 @@ export default class CallContext {
 
   // response related
   statusCode = 404
-  _body = null
+  // _body = null
 
   constructor(ctxData) {
     if (ctxData) {

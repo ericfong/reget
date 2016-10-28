@@ -87,7 +87,7 @@ describe('connectReget', function() {
 
     // react components
     const User = connectReget(props => {
-      const user = props.reget.get(`user/${props.userId}`, null, {serverPreload: true})
+      const user = props.reget.get(`user/${props.userId}`, null)
       return user ? {user} : null
     })(props => {
       return <div>{props.user.name}</div>
@@ -103,11 +103,11 @@ describe('connectReget', function() {
     const wrapper = await reget.serverRender(reget =>
       render(<RegetProvider reget={reget}><span>Blog: <Blog blogId="blog-1" /></span></RegetProvider>)
     )
-    should(wrapper.html()).be.exactly('<span>Blog: <span>blog-1 by <div>John</div></span></span>')
+    should(wrapper.html()).be.exactly('<span>Blog: <span>blog-1 by </span></span>')
 
     // no componentDidMount called
     should(getBlogCount).equal(1)
-    should(getUserCount).equal(1)
+    should(getUserCount).equal(0)
     should(User.prototype.componentDidMount.callCount).equal(0)
     User.prototype.componentDidMount.restore()
 
@@ -123,6 +123,6 @@ describe('connectReget', function() {
     })
     browserReget.cache.set(isoData)
     const browserMount = mount(<RegetProvider reget={browserReget}><Blog blogId="blog-1" /></RegetProvider>)
-    should(browserMount.text()).be.exactly('blog-1 by John')
+    should(browserMount.text()).be.exactly('blog-1 by ')
   })
 })

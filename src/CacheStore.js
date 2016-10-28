@@ -110,12 +110,12 @@ export default class CacheStore {
     }
 
     // use promise to debounce
-    if (this._changePromise) return
-    this._changePromise = new Promise(resolve => setTimeout(resolve, 1))
+    if (this._pendingPromise) return
+    this._pendingPromise = new Promise(resolve => setTimeout(resolve, 1))
     .then(() => {
+      this._pendingPromise = null
       const changes = this._emitChanges
       this._emitChanges = {}
-      this._changePromise = null
 
       // only emit key that is changed
       // collect watchers
@@ -137,12 +137,8 @@ export default class CacheStore {
     })
   }
 
-  hasPendingEvent() {
-    return !!this._changePromise
-  }
-
-  wait() {
-    return this._changePromise ? this._changePromise : Promise.resolve()
+  getPendingPromise() {
+    return this._pendingPromise
   }
 
 

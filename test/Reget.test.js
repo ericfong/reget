@@ -11,7 +11,7 @@ describe('Reget', function() {
     const reget = new Reget({
       handler: compose({
         mount: 'memory',
-        handler: cacheMiddleware,
+        handler: cacheMiddleware(),
       }),
     })
 
@@ -29,23 +29,26 @@ describe('Reget', function() {
           return new Promise(resolve => {
             setTimeout(() => {
               ctx.body = 'fetch data from backend'
-              resolve(ctx)
+              resolve()
             }, 1)
           })
         },
-        {mount: 'memory', handler: cacheMiddleware}
+        {mount: 'memory', handler: cacheMiddleware()}
       ),
     })
 
-    // TODO await whole stack
     should(reget.get('user/me')).be.undefined()
+    // for display isLoading animation
+    should(!!reget.getLoadingPromise()).true()
+    await reget.getLoadingPromise()
+    should(reget.get('user/me')).equal('fetch data from backend')
   })
 
   it('route', async () => {
     const _localStorage = {}
     const reget = new Reget({
       handler: compose([
-        {mount: 'memory', handler: cacheMiddleware},
+        {mount: 'memory', handler: cacheMiddleware()},
         {
           route: 'localStorage/:key',
           get(ctx, key) {

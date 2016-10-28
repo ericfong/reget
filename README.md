@@ -69,13 +69,13 @@ Compare to Relay/Falcor
 
 
 ## Server Rendering
-__Server Rendering will be comming soon__
 ```js
-// server side first render
-ReactDOMServer.renderToString(<RegetProvider reget={reget}><App /></RegetProvider>)
-await reget.wait()
-// server side second render
-var outputHtml = ReactDOMServer.renderToString(<RegetProvider reget={reget}><App /></RegetProvider>)
+reget.serverRender(reget => {
+  return ReactDOMServer.renderToString(<RegetProvider reget={reget}><App /></RegetProvider>)
+})
+.then(outputHtml => {
+  console.log(outputHtml)
+})
 
 // transfer data to client
 const json = JSON.stringify(reget.getCache())
@@ -101,7 +101,22 @@ import {Reget, compose, mount, cacheMiddleware} from 'reget'
 
 const reget = new Reget({
   handler: compose(
-    mount('memory', cacheMiddleware)
+    mount('memory', cacheMiddleware()),
+    // or
+    {mount: 'memory', handler: cacheMiddleware()},
+
+    {
+      route: 'abc/:key',
+      async get(ctx, next) {
+        // ...
+      },
+      async put(ctx, next) {
+        // ...
+      },
+      async post(ctx, next) {
+        // ...
+      },
+    }
   ),
 })
 
@@ -141,8 +156,7 @@ set: function() {} // set header
 - watch(key, func)  // register a watcher for change on key
 - unwatch(key, func)  // unregister a watcher for change on key
 - hasWatch(key)
-- hasPendingEvent()  // has pending change not yet run
-- wait()  // wait for pending event done
+- getPendingPromise()  // get pending change promise (or null), so you can wait for
 - prune()  // gc this cache store
 
 
@@ -155,6 +169,8 @@ set: function() {} // set header
 - post(url, input, option)  // http post (Async/Promise)
 - reload(url, option)  // http get (Async/Promise)
 - request(option)  // http request (Async/Promise)
+- serverRender()
+- getLoadingPromise() // get promise for all loading calls (or null if any)
 - wait()  // wait for all pending requests and events
 - getCache()
 - setCache()
