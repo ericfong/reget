@@ -41,7 +41,7 @@ export default class AutoRunner {
 }
 
 // TODO how to automate this
-['put', 'post', 'reload', 'request', 'watch', 'unwatch', 'getCache', 'setCache', 'invalidate'].forEach(key => {
+['getUrl', 'put', 'post', 'reload', 'request', 'getLoadingPromise', 'watch', 'unwatch', 'getCache', 'setCache', 'invalidate'].forEach(key => {
   AutoRunner.prototype[key] = function() {
     return this.reget[key].apply(this.reget, arguments)
   }
