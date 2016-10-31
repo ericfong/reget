@@ -14,31 +14,10 @@ export default class Reget {
     }
   }
 
-  getUrl(pathname, query) {
-    let url = pathname
+  getUrl(path, query) {
+    let url = path
     if (query) url += '?' + stringify(query)
     return url
-  }
-
-  get(pathname, query, option = {}) {
-    const url = this.getUrl(pathname, query)
-
-    const cachedTime = this.cache.getCachedTime(url)
-    const {ifModifiedSince} = option
-    if (this._shouldReload(option, cachedTime)) {
-      if (!option.headers) option.headers = {}
-      if (cachedTime) {
-        option.cachedTime = cachedTime
-        option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedTime, ifModifiedSince)) : cachedTime
-      }
-      const promise = this.reload(url, option)
-      // use promise directly if load is sync
-      if (promise.isFulfilled) {
-        return promise.value
-      }
-    }
-
-    return this.cache.get(url)
   }
 
   _shouldReload(option, cachedTime) {
@@ -52,19 +31,41 @@ export default class Reget {
     return !cachedTime || cachedTime < option.ifModifiedSince
   }
 
-  // HTTP interface that call request
-  put(url, input, option) {
-    return this.request({...option, method: 'PUT', url, input})
-  }
-  post(url, input, option) {
-    return this.request({...option, method: 'POST', url, input})
+  get(path, query, option = {}) {
+    const url = this.getUrl(path, query)
+
+    const cachedTime = this.cache.getCachedTime(url)
+    const {ifModifiedSince} = option
+    if (this._shouldReload(option, cachedTime)) {
+      if (!option.headers) option.headers = {}
+      if (cachedTime) {
+        option.cachedTime = cachedTime
+        option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedTime, ifModifiedSince)) : cachedTime
+      }
+      option.url = url
+      const promise = this.reload(path, query, option)
+      // use promise directly if load is sync
+      if (promise.isFulfilled) {
+        return promise.value
+      }
+    }
+
+    return this.cache.get(url)
   }
 
-  reload(url, option = {}) {
+  // HTTP interface that call request
+  reload(path, query, option = {}) {
+    const url = option.url || this.getUrl(path, query)
     const runningPromise = this.promises[url]
     if (runningPromise) return runningPromise
     // request and record the created promise
-    const createdPromise = this.promises[url] = this.request({...option, method: 'GET', url})
+    const createdPromise = this.promises[url] = this.request({
+      method: 'GET',
+      url,
+      path,
+      query,
+      ...option,
+    })
     if (option.serverPreload) {
       createdPromise.serverPreload = option.serverPreload
     }
@@ -76,6 +77,13 @@ export default class Reget {
       delete this.promises[url]
       throw err
     })
+  }
+
+  put(url, input, option) {
+    return this.request({...option, method: 'PUT', url, input})
+  }
+  post(url, input, option) {
+    return this.request({...option, method: 'POST', url, input})
   }
 
   request(ctxData) {
