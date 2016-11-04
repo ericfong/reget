@@ -1,6 +1,18 @@
 # Reget ![https://img.shields.io/npm/v/reget.svg](https://img.shields.io/npm/v/reget.svg?style=flat-square) [![state](https://img.shields.io/badge/state-rc-green.svg?style=flat-square)]() [![npm](https://img.shields.io/npm/dt/reget.svg?maxAge=2592000&style=flat-square)]() [![npm](https://img.shields.io/npm/l/reget.svg?style=flat-square)]()
 
-> React reactive cache for any async calls, http fetching, or memory store accesses.
+> HTTP API Accessor for React with auto-reactive-cache and middlewares.
+> Restful React reactive cache for any async calls, http fetching, or memory store accesses.
+
+__Features__
+- auto-reactive-cache
+  - API results are cached and auto prune
+  - AutoRunner(function) auto watch and re-run when related caches changed
+  - reget.get() is synchronized function, which get cache and trigger http fetch as a side effect
+
+- middlewares
+  - koa middleware like
+  - can use middlewares to convert data, as ORM or distribute to diff cache keys
+  - also work for synchronized access or localStorage or memory
 
 
 __How It works?__

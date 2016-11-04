@@ -17,7 +17,7 @@ export default function() {
         ctx.body = val
       }
     },
-    put({cache, input}, key) {
+    put({input}, key) {
       if (!input) {
         localStorage.removeItem(key)
       } else {

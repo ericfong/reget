@@ -5,8 +5,8 @@ export default function() {
     get(ctx) {
       ctx.status = 304
     },
-    put({cache, url, input}) {
-      cache.set(url, input)
+    put({reget, url, input}) {
+      reget.setCache(url, input)
     },
   }
 }
