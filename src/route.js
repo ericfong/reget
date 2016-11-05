@@ -15,7 +15,8 @@ export default function route(conf) {
   const {route, routeOption, ...rest} = conf
   // use falcor similar param spec
   // init re
-  const re = (!route || route === '/') ? null : pathToRegexp(route, routeOption)
+  const reKeys = []
+  const re = (!route || route === '/') ? null : pathToRegexp(route, reKeys, routeOption)
   // init methods
   const methods = _.mapKeys(rest, (v, k) => k.toUpperCase())
   log(`route ${route} re=${re}`)
@@ -32,7 +33,15 @@ export default function route(conf) {
     log(`regexp ${ctx.path} ${re}`, m)
     if (m) {
       const args = m.slice(1).map(decode)
-      ctx.routePath = route
+
+      ctx.routePath = ctx.routePath ? `${ctx.routePath}/${route}` : route
+      ctx.params = ctx.params || {}
+      for (let len = args.length, i=0; i<len; i++) {
+        if (reKeys[i]) {
+          ctx.params[reKeys[i].name] = args[i]
+        }
+      }
+
       args.unshift(ctx)
       args.push(next)
       return SyncPromise.resolve(downstream.apply(ctx, args))

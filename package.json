@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "prepublish": "babel src --out-dir lib",
+    "start": "babel src --out-dir lib --watch",
+    "test": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 mocha --opts test/mocha.opts"
+  },
   "name": "reget",
   "version": "0.9.8",
   "description": "React reactive cache for any async calls, http fetching, or memory store accesses",
@@ -7,11 +12,6 @@
   "jsnext:main": "./lib/index.js",
   "directories": {
     "lib": "./lib"
-  },
-  "scripts": {
-    "prepublish": "babel src --out-dir lib",
-    "start": "babel src --out-dir lib --watch",
-    "test": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 mocha --opts test/mocha.opts"
   },
   "dependencies": {
     "js-cookie": "^2.1.3",
