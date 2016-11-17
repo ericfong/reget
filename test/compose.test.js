@@ -137,7 +137,7 @@ describe('compose middlewares', function() {
     ).property('body', 3)
   })
 
-  it.only('route and params', async () => {
+  it('route and params', async () => {
     function get(ctx) {ctx.body = ctx.params}
     const mw = compose([
       {route: 'route-a/:key', get},

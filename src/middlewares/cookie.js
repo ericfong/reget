@@ -3,10 +3,12 @@ import Cookie from 'js-cookie'
 export default function(cookieConf) {
   return {
     route: '/:key+',
-    get(ctx, key) {
+    get(ctx) {
+      const {key} = ctx.params
       ctx.body = Cookie.get(key)
     },
-    put(ctx, key) {
+    put(ctx) {
+      const {key} = ctx.params
       const {input, cookieOptions} = ctx
       if (input === '') {
         Cookie.remove(key)

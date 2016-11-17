@@ -9,7 +9,8 @@ export default function() {
 
   return {
     route: '/:key+',
-    get(ctx, key) {
+    get(ctx) {
+      const {key} = ctx.params
       const val = localStorage.getItem(key)
       try {
         ctx.body = JSON.parse(val)
@@ -17,7 +18,7 @@ export default function() {
         ctx.body = val
       }
     },
-    put({input}, key) {
+    put({params: {key}, input}) {
       if (!input) {
         localStorage.removeItem(key)
       } else {

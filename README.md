@@ -201,8 +201,9 @@ import {compose} from 'reget'
 
 const handler = compose(
   {
-    route: 'foo',
+    route: 'foo/:key',
     async get(ctx, next) {
+      // ctx.params = {key: 'hi'}
       await next()
       ctx.body = ctx.body + ' World'
     },
@@ -216,7 +217,7 @@ const handler = compose(
   },
 )
 
-const ctx = {path: 'foo'}
+const ctx = {path: 'foo/hi'}
 await handler(ctx)
 // ctx.body === 'Hello World'
 ```

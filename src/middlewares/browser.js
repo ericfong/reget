@@ -9,7 +9,7 @@ export default function() {
 
   return {
     route: '/:key',
-    watch({mountPath, reget}, key) {
+    watch({params: {key}, mountPath, reget}) {
       if (key === 'height' || key === 'width') {
         window.onresize = function() {
           const changes = {
@@ -21,7 +21,8 @@ export default function() {
         window.onresize()
       }
     },
-    unwatch(ctx, key) {
+    unwatch(ctx) {
+      const {key} = ctx.params
       if (key === 'height' || key === 'width') {
         window.onresize = null
       }
