@@ -11,6 +11,8 @@ function decode(val) {
   if (val) return decodeURIComponent(val)
 }
 
+let deprecateWarned = false
+
 export default function route(conf) {
   const {route, routeOption, ...rest} = conf
   // use falcor similar param spec
@@ -20,6 +22,11 @@ export default function route(conf) {
   // init methods
   const methods = _.mapKeys(rest, (v, k) => k.toUpperCase())
   log(`route ${route} re=${re}`)
+
+  if (!deprecateWarned && reKeys.length > 0) {
+    deprecateWarned = true
+    console.warn(`Won't fill params "${reKeys.map(key => key.name)}" values into middleware function arguments in next version. Please make sure ${route} use ctx.params instead`)
+  }
 
   // koa-route like
   function routing(ctx, next) {

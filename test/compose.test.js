@@ -136,4 +136,29 @@ describe('compose middlewares', function() {
       })
     ).property('body', 3)
   })
+
+  it.only('route and params', async () => {
+    function get(ctx) {ctx.body = ctx.params}
+    const mw = compose([
+      {route: 'route-a/:key', get},
+      {route: 'route-b/:foo/:bar?', get},
+      {route: 'route-c/:foo+', get},
+      {route: 'route-d/*', get},
+    ])
+
+    should((await runMiddleware(mw, {path: 'route-a/abc'})).body)
+    .properties({'key': 'abc'})
+
+    should((await runMiddleware(mw, {path: 'route-b/a/b'})).body)
+    .properties({foo: 'a', bar: 'b'})
+    should((await runMiddleware(mw, {path: 'route-b/a'})).body)
+    .properties({foo: 'a'})
+
+    should((await runMiddleware(mw, {path: 'route-c/a/b/c'})).body)
+    .properties({foo: 'a/b/c'})
+
+    should((await runMiddleware(mw, {path: 'route-d/a/b/c'})).body)
+    .properties({0: 'a/b/c'})
+  })
+
 })
