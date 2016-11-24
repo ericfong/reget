@@ -109,7 +109,14 @@ You can use [iso](https://www.npmjs.com/package/iso) to ship data to browser
 ## Use Reget alone
 Reget can be a
 ```js
-import {Reget, compose, mount, cacheMiddleware} from 'reget'
+import {Reget, compose, mount} from 'reget'
+
+import browserMiddleware from 'reget/lib/middlewares/browser'
+import cacheMiddleware from 'reget/lib/middlewares/cache'
+import localStorageMiddleware from 'reget/lib/middlewares/localStorage'
+import cookieMiddleware from 'reget/lib/middlewares/cookie'
+import koaCookieMiddleware from 'reget/lib/middlewares/koaCookie'
+
 
 const reget = new Reget({
   handler: compose(
