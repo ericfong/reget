@@ -103,12 +103,12 @@ export default class Reget {
           return this.getCache(url)
         }
         this.setCache(url, body)
-        return body
-      } else {
+      } else if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
         // for PUT and POST, suppose the data for this url will be changed
         this.invalidate(url, true)
-        return body
       }
+      // else if (method !== 'WATCH' && method !== 'UNWATCH')
+      return body
     })
   }
 
