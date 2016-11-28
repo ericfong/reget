@@ -100,13 +100,13 @@ export default class Reget {
       if (method === 'GET') {
         if (status === 304) {
           // no change, cachedDates already set
-          return this.cache.get(url)
+          return this.getCache(url)
         }
-        this.cache.set(url, body)
+        this.setCache(url, body)
         return body
       } else {
         // for PUT and POST, suppose the data for this url will be changed
-        this.cache.invalidate(url, true)
+        this.invalidate(url, true)
         return body
       }
     })
