@@ -76,27 +76,29 @@ export default class CacheStore {
     if (typeof key === 'function') {
       // first argument can be AutoRunner._onChange / watcher function
       const _fn = key
+      // search all keys and unwatch fn
       for (const key in this.watcherLists) {
-        const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== _fn)
-        if (newWatchers.length === 0) {
-          delete this.watcherLists[key]
-          unwatchedKeys.push(key)
-        }
+        this._unwatchKeyAndFn(key, _fn, unwatchedKeys)
       }
     } else {
-      if (!this.watcherLists[key]) return this
+      if (!this.watcherLists[key]) return unwatchedKeys
       if (!fn) {
         delete this.watcherLists[key]
-        return this
+        return [key]
       }
-
-      const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== fn)
-      if (newWatchers.length === 0) {
-        delete this.watcherLists[key]
-        unwatchedKeys.push(key)
-      }
+      this._unwatchKeyAndFn(key, fn, unwatchedKeys)
     }
     return unwatchedKeys
+  }
+  _unwatchKeyAndFn(key, fn, unwatchedKeys) {
+    const newWatchers = this.watcherLists[key] = _.filter(this.watcherLists[key], w => w !== fn)
+    if (newWatchers.length === 0) {
+      delete this.watcherLists[key]
+      // enable reload if watch again
+      delete this.cachedTimes[key]
+      // NOTE collect keys and fire watch event to middlewares
+      unwatchedKeys.push(key)
+    }
   }
 
 
