@@ -3,6 +3,13 @@ import Reget from './Reget'
 export default class AutoRunner {
   constructor(reget, runHandler, {disableOnChange} = {}) {
     this.reget = reget
+
+    for (const key of Object.keys(reget)) {
+      // TODO can auto this?
+      if (key === 'cache' || key === 'promises' || key === 'handler') continue
+      this[key] = reget[key]
+    }
+
     this.runHandler = runHandler
     this.preferredDate = new Date()
 
@@ -40,9 +47,10 @@ export default class AutoRunner {
   }
 }
 
-// TODO how to automate this
-['getUrl', 'put', 'post', 'reload', 'request', 'getLoadingPromise', 'watch', 'unwatch', 'getCache', 'setCache', 'invalidate'].forEach(key => {
+
+for (const key of Object.getOwnPropertyNames(Reget.prototype)) {
+  if (key === 'constructor' || key[0] === '_' || AutoRunner.prototype[key]) continue
   AutoRunner.prototype[key] = function() {
     return this.reget[key].apply(this.reget, arguments)
   }
-})
+}
