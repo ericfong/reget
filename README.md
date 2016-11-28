@@ -229,7 +229,7 @@ await handler(ctx)
 // ctx.body === 'Hello World'
 ```
 
-### API
+### Middleware API
 
 __compose(...middlewares)__
 create a function that accept a context argument and pass down to all middlewares
@@ -243,6 +243,41 @@ middlewares can be one of
 
 like koa-route, path pattern use [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) to build regexp
 
+
+### Middleware Example
+
+```js
+browserMiddleware = {
+  route: '/:key',
+  watch({params: {key}, mountPath, reget}) {
+    if (key === 'height' || key === 'width') {
+      window.onresize = function() {
+        const changes = {
+          // mountPath = 'browser' if you use mount('browser', browserMiddleware)
+          [`${mountPath}/height`]: window.innerHeight,
+          [`${mountPath}/width`]: window.innerWidth,
+        }
+        reget.setCache(changes)
+      }
+      window.onresize()
+    }
+  },
+  unwatch(ctx) {
+    const {key} = ctx.params
+    if (key === 'height' || key === 'width') {
+      window.onresize = null
+    }
+  },
+  get(ctx) {
+    // just use the cached value
+    ctx.status = 304
+  },
+  put(ctx) {
+    // cannot put
+    ctx.status = 404
+  },
+}
+```
 
 
 ## SyncPromise
