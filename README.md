@@ -245,7 +245,6 @@ like koa-route, path pattern use [path-to-regexp](https://www.npmjs.com/package/
 
 
 ### Middleware Example
-
 ```js
 browserMiddleware = {
   route: '/:key',

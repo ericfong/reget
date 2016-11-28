@@ -60,11 +60,15 @@ export default class CacheStore {
 
   // watch, unwatch, unwatchBy
   watch(key, fn) {
-    // make sure unique, remove all previous registered listeners
-    this.unwatch(key, fn)
-
-    if (!this.watcherLists[key]) this.watcherLists[key] = [fn]
-    else this.watcherLists[key].push(fn)
+    if (!this.watcherLists[key]) {
+      this.watcherLists[key] = [fn]
+    } else {
+      // make sure unique
+      const watcherList = this.watcherLists[key]
+      if (watcherList.indexOf(fn) < 0) {
+        watcherList.push(fn)
+      }
+    }
   }
 
   hasWatch(key) {
