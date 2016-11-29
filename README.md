@@ -170,8 +170,8 @@ set: function() {} // set header
 
 ## CacheStore class methods
 ```js
-get(key)  // sync get cache. If !key, entire store will be returned
-set(key, value)  // sync set cache, trigger watchers to re-run in next tick. If key is object, key&value will be import to this cache store.
+get(key)  // sync get cache
+set(key, value)  // sync set cache, trigger watchers to re-run in next tick.
 invalidate(key, allSuffix)  // invalidate cache
 watch(key, func)  // register a watcher for change on key
 unwatch(key, func)  // unregister a watcher for change on key
@@ -193,8 +193,8 @@ request(option)  // http request (Async/Promise)
 serverRender()
 getLoadingPromise(key) // get promise for all loading calls or one cache, null when promise not found
 wait()  // wait for all pending requests and events
-getCache()
-setCache()
+getCache() // If !key, entire store will be returned
+setCache() // If key is object, key&value will be import to this cache store.
 invalidate(key, allSuffix)
 watch(key, func)
 unwatch(key, func)

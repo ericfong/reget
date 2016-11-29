@@ -163,13 +163,21 @@ export default class Reget {
     const unwatchedKeys = this.cache.unwatch(key, fn)
     _.each(unwatchedKeys, key => this.request({method: 'UNWATCH', url: key}))
   }
-  getCache() {
+
+  getCache(key) {
     const cache = this.cache
-    return cache.get.apply(cache, arguments)
+    if (!key) return cache.store
+    return cache.get(key)
   }
-  setCache() {
+  setCache(key, value) {
     const cache = this.cache
-    return cache.set.apply(cache, arguments)
+    if (typeof key === 'object') {
+      for (const subKey in key) {
+        cache.set(subKey, key[subKey])
+      }
+    } else {
+      cache.set(key, value)
+    }
   }
   invalidate(key, allSuffix) {
     this.cache.invalidate(key, allSuffix)

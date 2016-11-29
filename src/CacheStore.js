@@ -15,7 +15,6 @@ export default class CacheStore {
 
   // get, set, invalidate
   get(key) {
-    if (!key) return this.store
     return this.store[key]
   }
 
@@ -24,17 +23,9 @@ export default class CacheStore {
   }
 
   set(key, value) {
-    if (typeof key === 'object') {
-      Object.assign(this.store, key)
-      for (const k in key) {
-        const time = this.cachedTimes[k] = new Date()
-        this._emitChange(key, time)
-      }
-    } else {
-      this.store[key] = value
-      const time = this.cachedTimes[key] = new Date()
-      this._emitChange(key, time)
-    }
+    this.store[key] = value
+    const time = this.cachedTimes[key] = new Date()
+    this._emitChange(key, time)
   }
 
   invalidate(key, allSuffix) {
