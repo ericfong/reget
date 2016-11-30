@@ -11,7 +11,7 @@ function decode(val) {
   if (val) return decodeURIComponent(val)
 }
 
-let deprecateWarned = false
+// let deprecateWarned = false
 
 export default function route(conf) {
   const {route, routeOption, ...rest} = conf
@@ -23,10 +23,10 @@ export default function route(conf) {
   const methods = _.mapKeys(rest, (v, k) => k.toUpperCase())
   log(`route ${route} re=${re}`)
 
-  if (!deprecateWarned && reKeys.length > 0) {
-    deprecateWarned = true
-    console.warn(`Won't fill params "${reKeys.map(key => key.name)}" values into middleware function arguments in next version. Please make sure ${route} use ctx.params instead`)
-  }
+  // if (!deprecateWarned && reKeys.length > 0) {
+  //   deprecateWarned = true
+  //   console.warn(`Won't fill params "${reKeys.map(key => key.name)}" values into middleware function arguments in next version. Please make sure ${route} use ctx.params instead`)
+  // }
 
   // koa-route like
   function routing(ctx, next) {
@@ -49,9 +49,9 @@ export default function route(conf) {
         }
       }
 
-      args.unshift(ctx)
-      args.push(next)
-      return SyncPromise.resolve(downstream.apply(ctx, args))
+      // args.unshift(ctx)
+      // args.push(next)
+      return SyncPromise.resolve(downstream(ctx, next))
     }
 
     // miss
