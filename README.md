@@ -1,4 +1,4 @@
-# Reget ![https://img.shields.io/npm/v/reget.svg](https://img.shields.io/npm/v/reget.svg?style=flat-square) [![state](https://img.shields.io/badge/state-rc-green.svg?style=flat-square)]() [![npm](https://img.shields.io/npm/dt/reget.svg?maxAge=2592000&style=flat-square)]() [![npm](https://img.shields.io/npm/l/reget.svg?style=flat-square)]()
+__Reget__ ![https://img.shields.io/npm/v/reget.svg](https://img.shields.io/npm/v/reget.svg?style=flat-square) [![state](https://img.shields.io/badge/state-rc-green.svg?style=flat-square)]() [![npm](https://img.shields.io/npm/dt/reget.svg?maxAge=2592000&style=flat-square)]() [![npm](https://img.shields.io/npm/l/reget.svg?style=flat-square)]()
 
 > HTTP API Accessor for React with auto-reactive-cache and middlewares.
 > Restful React reactive cache for any async calls, http fetching, or memory store accesses.
@@ -22,6 +22,26 @@ reget is simple key-value cache. During data getting, reget will call a list of 
 You can implement koa-like middlewares to asynchronously fetch HTTP RESTful resources, worker communication or synchronously access localStorage.
 
 Welcome to extend or hack Reget or other classes to change behaviours
+
+
+__Table of Contents__
+<!-- TOC START min:1 max:3 link:true update:true -->
+  - [Http get, put, post for react component](#http-get-put-post-for-react-component)
+  - [Setup](#setup)
+  - [Comparison](#comparison)
+  - [Server Rendering](#server-rendering)
+  - [Use Reget alone](#use-reget-alone)
+    - [API](#api)
+  - [CacheStore class methods](#cachestore-class-methods)
+  - [Reget class](#reget-class)
+  - [Middlewares](#middlewares)
+    - [Middleware API](#middleware-api)
+    - [Middleware Example](#middleware-example)
+  - [SyncPromise](#syncpromise)
+
+<!-- TOC END -->
+
+
 
 
 ## Http get, put, post for react component
