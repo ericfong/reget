@@ -1,8 +1,8 @@
 import should from 'should'
 
-import mutable from '../src/mutable2'
+import sethub, {mutate} from '../src/sethub'
 
-describe('mutable2', function() {
+describe('mutable', function() {
   const dataJson = JSON.stringify({
     str: 'INV-001',
     arr: [
@@ -18,16 +18,12 @@ describe('mutable2', function() {
     otherObj: {hello: 'world'},
   })
 
-  it('3 level', async () => {
+  it('fork, set, inc, push', async () => {
     const rootObj = JSON.parse(dataJson)
-    let mutated
-    mutable(rootObj, {
-      // onSet(e) {
-      //   console.log('onSet', e)
-      // },
-      onMutate(e) {
-        mutated = e.mutated
-      },
+    let mutated = sethub(rootObj, (e) => {
+      // console.log('onSet', e)
+      mutated = mutate(e.root, e.path)
+      // console.log('>>', JSON.stringify(mutated, null, '  '))
     })
 
     // set, inc, push
@@ -41,6 +37,7 @@ describe('mutable2', function() {
       'arr.0.deepArr': [{userId: 'a01-a'}, {userId: 'a01-b'}],
     })
     should(rootObj.arr[0].deepArr[1].userId).equal('a01-b')
+
     // array push
     rootObj.fork(['arr', 0]).set({$push: {deepArr: {userId: 'a02'}}})
     should(rootObj.arr[0].deepArr[2].userId).equal('a02')
