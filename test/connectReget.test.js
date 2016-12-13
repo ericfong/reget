@@ -112,7 +112,7 @@ describe('connectReget', function() {
     User.prototype.componentDidMount.restore()
 
     // transfer data to client
-    const json = JSON.stringify(reget.cache.get())
+    const json = JSON.stringify(reget.getCache())
     const isoData = JSON.parse(json)
 
     // client side
@@ -121,7 +121,7 @@ describe('connectReget', function() {
         return Promise.resolve()
       },
     })
-    browserReget.cache.set(isoData)
+    browserReget.setCache(isoData)
     const browserMount = mount(<RegetProvider reget={browserReget}><Blog blogId="blog-1" /></RegetProvider>)
     should(browserMount.text()).be.exactly('blog-1 by ')
   })

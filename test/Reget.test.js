@@ -51,11 +51,11 @@ describe('Reget', function() {
         {mount: 'memory', handler: cacheMiddleware()},
         {
           route: 'localStorage/:key',
-          get(ctx, key) {
-            ctx.body = _localStorage[key]
+          get(ctx) {
+            ctx.body = _localStorage[ctx.params.key]
           },
-          put({input}, key) {
-            _localStorage[key] = input + '_localStorage'
+          put(ctx) {
+            _localStorage[ctx.params.key] = ctx.input + '_localStorage'
           },
         },
       ]),

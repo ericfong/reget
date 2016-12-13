@@ -13,11 +13,11 @@ describe('compose middlewares', function() {
     const middleware = compose(
       {
         route: 'user/:id',
-        GET(ctx, id) {
-          ctx.body = `get ${id}`
+        GET(ctx) {
+          ctx.body = `get ${ctx.params.id}`
         },
-        PUT(ctx, id) {
-          ctx.body = `put ${id}`
+        PUT(ctx) {
+          ctx.body = `put ${ctx.params.id}`
         },
       }
     )
