@@ -1,6 +1,7 @@
 import should from 'should'
 
-import {compose, Reget, AutoRunner, cacheMiddleware} from '../src'
+import {compose, Reget, AutoRunner} from '../src'
+import cacheMiddleware from '../src/middlewares/cache'
 
 function sleep(time) {
   return new Promise(resolve => setTimeout(resolve, time))
@@ -83,6 +84,10 @@ describe('Reget', function() {
     reget.get('numberOfCalls')
     should(numOfCall).equal(1)
     reget.get('numberOfCalls')
+    should(numOfCall).equal(1)
+
+    // even load will not trigger reload
+    should(await reget.load('numberOfCalls')).equal('X')
     should(numOfCall).equal(1)
 
     await sleep(10)

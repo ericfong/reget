@@ -32,6 +32,20 @@ export default class Reget {
   }
 
   get(path, query, option = {}) {
+    const ret = this.load(path, query, option)
+    if (ret) {
+      if (ret.isFulfilled) {
+        // is a SyncPromise Wrapper
+        return ret.value
+      } else if (ret.then) {
+        // is native Promise, use cache
+        return this.cache.get(option.url)
+      }
+    }
+    return ret
+  }
+
+  load(path, query, option = {}) {
     const url = this.getUrl(path, query)
 
     const cachedTime = this.cache.getCachedTime(url)
@@ -43,11 +57,7 @@ export default class Reget {
         option.ifModifiedSince = option.headers['If-Modified-Since'] = ifModifiedSince ? new Date(Math.max(cachedTime, ifModifiedSince)) : cachedTime
       }
       option.url = url
-      const promise = this.reload(path, query, option)
-      // use promise directly if load is sync
-      if (promise.isFulfilled) {
-        return promise.value
-      }
+      return this.reload(path, query, option)
     }
 
     return this.cache.get(url)
