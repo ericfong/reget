@@ -9,7 +9,7 @@ export default class SyncPromise {
 
   then(onFulfilled, onRejected) {
     if (onRejected && this.error) {
-      this.value = onRejected(this.value)
+      this.value = onRejected(this.error)
     } else if (onFulfilled) {
       this.value = onFulfilled(this.value)
     }
@@ -30,7 +30,9 @@ SyncPromise.isThenable = function(p) {
 
 SyncPromise.resolve = function(result, error) {
   if (SyncPromise.isThenable(result)) {
-    if (error) Promise.reject(error)
+    if (error) {
+      return Promise.reject(error)
+    }
     return result
   } else {
     return new SyncPromise(result, error)
