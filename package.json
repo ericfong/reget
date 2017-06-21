@@ -6,7 +6,7 @@
     "test": "cross-env NODE_ENV=test BABEL_DISABLE_CACHE=1 mocha --opts test/mocha.opts"
   },
   "name": "reget",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "description": "React reactive cache for any async calls, http fetching, or memory store accesses",
   "main": "./lib/index.js",
   "module": "./lib/index.js",
