@@ -1,5 +1,7 @@
 __Reget__ ![https://img.shields.io/npm/v/reget.svg](https://img.shields.io/npm/v/reget.svg?style=flat-square) [![state](https://img.shields.io/badge/state-rc-green.svg?style=flat-square)]() [![npm](https://img.shields.io/npm/dt/reget.svg?maxAge=2592000&style=flat-square)]() [![npm](https://img.shields.io/npm/l/reget.svg?style=flat-square)]()
 
+# Deprecated and please migrate to __[datavan](http://npmjs.com/package/datavan)__, which provide more features
+
 > HTTP API Accessor for React with auto-reactive-cache and middlewares.
 > Restful React reactive cache for any async calls, http fetching, or memory store accesses.
 
@@ -78,7 +80,7 @@ const reget = new Reget({
       body: ctx.input,
       headers: ctx.headers,
     })
-  }),  
+  }),
 })
 
 // Assign to your React context
